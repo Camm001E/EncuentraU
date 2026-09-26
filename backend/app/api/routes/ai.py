@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
@@ -12,6 +13,7 @@ from app.infrastructure.gemini_image_analyzer import (
 )
 
 router = APIRouter(prefix="/ai", tags=["artificial-intelligence"])
+logger = logging.getLogger(__name__)
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
@@ -70,6 +72,7 @@ async def analyze_object_image(
             description.strip(),
         )
     except ImageAnalysisProviderError as exc:
+        logger.exception("Gemini image analysis failed")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Gemini no pudo analizar la fotografía. Intenta nuevamente.",
