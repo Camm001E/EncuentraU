@@ -95,11 +95,3 @@ El porcentaje se calcula con reglas locales:
 
 En la versión final este cálculo se complementará con análisis visual, embeddings, PostgreSQL con `pgvector` y validación administrativa.
 
-## Próximas etapas
-
-1. Backend con FastAPI.
-2. Base de datos PostgreSQL.
-3. Almacenamiento real de imágenes.
-4. Autenticación real.
-5. Extracción de características mediante IA.
-6. Notificaciones y panel administrativo.
