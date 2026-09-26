@@ -22,3 +22,11 @@ macos/Flutter/ephemeral/
 .env
 *.jks
 *.keystore
+
+# Python backend
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+backend/.env
