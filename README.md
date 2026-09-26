@@ -95,3 +95,17 @@ El porcentaje se calcula con reglas locales:
 
 En la versión final este cálculo se complementará con análisis visual, embeddings, PostgreSQL con `pgvector` y validación administrativa.
 
+## Fase 1: prueba real de reconocimiento visual
+
+El repositorio incluye ahora una prueba técnica independiente en `backend/` con:
+
+- FastAPI.
+- Integración preparada para Gemini mediante `google-genai`.
+- Endpoint `POST /api/v1/ai/analyze`.
+- Esquema JSON obligatorio para tipo, categoría, colores, marca, forma y rasgos visibles.
+- Protección para no copiar información personal visible en documentos.
+- Validación de formato y tamaño de la fotografía.
+- Pruebas automáticas sin consumo de la API.
+
+La guía para crear el entorno, configurar `GEMINI_API_KEY` y probar una fotografía
+está en [`backend/README.md`](backend/README.md).
