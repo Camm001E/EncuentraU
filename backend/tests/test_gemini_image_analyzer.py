@@ -4,7 +4,7 @@ from app.infrastructure.gemini_image_analyzer import GeminiImageAnalyzer
 
 class FakeResponse:
     def __init__(self, parsed: ObjectImageAnalysis) -> None:
-        self.parsed = parsed
+        self.parsed = parsed.model_dump()
         self.text = parsed.model_dump_json()
 
 
@@ -60,4 +60,9 @@ def test_gemini_analyzer_sends_image_and_parses_schema() -> None:
     assert image_part.inline_data.mime_type == "image/png"
     assert image_part.inline_data.data == b"image-bytes"
     assert request["config"].response_mime_type == "application/json"
-    assert request["config"].response_schema is ObjectImageAnalysis
+    assert request["config"].response_schema is None
+    assert (
+        request["config"].response_json_schema
+        == ObjectImageAnalysis.model_json_schema()
+    )
+    assert request["config"].response_json_schema["additionalProperties"] is False
