@@ -67,7 +67,7 @@ class GeminiImageAnalyzer(ImageAnalyzer):
                 ],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
-                    response_schema=ObjectImageAnalysis,
+                    response_json_schema=ObjectImageAnalysis.model_json_schema(),
                 ),
             )
 
