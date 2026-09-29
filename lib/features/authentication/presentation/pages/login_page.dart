@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/routes.dart';
-import '../../../../core/theme/app_theme.dart';
+import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/app_validation.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,10 +14,9 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(
-    text: 'estudiante@universidad.edu.co',
-  );
-  final _passwordController = TextEditingController(text: '1234');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   bool _hidePassword = true;
 
   @override
@@ -26,8 +27,41 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _login() {
-    if (!_formKey.currentState!.validate()) return;
+    final formIsValid = _formKey.currentState?.validate() ?? false;
+
+    if (!formIsValid) {
+      return;
+    }
+
     Navigator.pushReplacementNamed(context, AppRoutes.home);
+  }
+
+  void _openRegister() {
+    Navigator.pushNamed(context, AppRoutes.register);
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return AppStrings.requiredField;
+    }
+
+    if (!AppValidation.isValidEmail(value)) {
+      return AppStrings.invalidEmail;
+    }
+
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return AppStrings.requiredField;
+    }
+
+    if (value.length < AppValidation.minimumPasswordLength) {
+      return AppStrings.passwordMinLength;
+    }
+
+    return null;
   }
 
   @override
@@ -36,74 +70,89 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSizes.spacingLarge),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
+              constraints: const BoxConstraints(
+                maxWidth: AppSizes.formMaxWidth,
+              ),
               child: Card(
-                elevation: 0,
                 child: Padding(
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.all(AppSizes.spacingXLarge),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const _BrandHeader(),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: AppSizes.spacingXLarge),
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
                           decoration: const InputDecoration(
-                            labelText: 'Correo institucional',
-                            prefixIcon: Icon(Icons.alternate_email_rounded),
+                            labelText: AppStrings.emailLabel,
+                            prefixIcon: Icon(
+                              Icons.alternate_email_rounded,
+                            ),
                           ),
-                          validator: (value) {
-                            if (value == null || !value.contains('@')) {
-                              return 'Ingresa un correo válido.';
-                            }
-                            return null;
-                          },
+                          validator: _validateEmail,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSizes.spacingMedium),
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _hidePassword,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.password],
                           decoration: InputDecoration(
-                            labelText: 'Contraseña',
-                            prefixIcon: const Icon(Icons.lock_outline_rounded),
+                            labelText: AppStrings.passwordLabel,
+                            prefixIcon: const Icon(
+                              Icons.lock_outline_rounded,
+                            ),
                             suffixIcon: IconButton(
-                              onPressed: () => setState(
-                                () => _hidePassword = !_hidePassword,
-                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _hidePassword = !_hidePassword;
+                                });
+                              },
                               icon: Icon(
                                 _hidePassword
                                     ? Icons.visibility_outlined
                                     : Icons.visibility_off_outlined,
                               ),
                               tooltip: _hidePassword
-                                  ? 'Mostrar contraseña'
-                                  : 'Ocultar contraseña',
+                                  ? AppStrings.showPassword
+                                  : AppStrings.hidePassword,
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.length < 4) {
-                              return 'Usa al menos cuatro caracteres.';
-                            }
-                            return null;
-                          },
+                          validator: _validatePassword,
                           onFieldSubmitted: (_) => _login(),
                         ),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: AppSizes.spacingLarge),
                         FilledButton.icon(
                           onPressed: _login,
                           icon: const Icon(Icons.login_rounded),
-                          label: const Text('Ingresar al prototipo'),
+                          label: const Text(AppStrings.signIn),
                         ),
-                        const SizedBox(height: 14),
-                        const Text(
-                          'Acceso simulado: puedes usar los datos precargados.',
+                        const SizedBox(height: AppSizes.spacingMedium),
+                        Text(
+                          AppStrings.simulatedAccessMessage,
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Color(0xFF587068)),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(height: AppSizes.spacingMedium),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            const Text(AppStrings.dontHaveAccount),
+                            TextButton(
+                              onPressed: _openRegister,
+                              child: const Text(
+                                AppStrings.registrationTitle,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -123,34 +172,31 @@ class _BrandHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
-        Container(
-          width: 76,
-          height: 76,
-          decoration: BoxDecoration(
-            color: AppTheme.primary,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: const Icon(
-            Icons.travel_explore_rounded,
-            color: Colors.white,
-            size: 42,
-          ),
+        CircleAvatar(
+          radius: AppSizes.spacingXLarge,
+          backgroundColor: theme.colorScheme.primary,
+          foregroundColor: theme.colorScheme.onPrimary,
+          child: const Icon(Icons.travel_explore_rounded),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSizes.spacingMedium),
         Text(
-          'EncuentraU',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-            color: const Color(0xFF17372D),
+          AppStrings.appName,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            color: theme.colorScheme.primary,
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 6),
-        const Text(
-          'Objetos perdidos, conexiones encontradas.',
+        const SizedBox(height: AppSizes.spacingSmall),
+        Text(
+          AppStrings.loginSubtitle,
           textAlign: TextAlign.center,
-          style: TextStyle(color: Color(0xFF587068)),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );

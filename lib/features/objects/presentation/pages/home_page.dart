@@ -50,7 +50,9 @@ class HomePage extends StatelessWidget {
                 const SizedBox(height: 22),
                 Text(
                   '¿Qué deseas reportar?',
-                  style: Theme.of(context).textTheme.titleLarge
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
                       ?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
@@ -127,7 +129,9 @@ class HomePage extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Actividad reciente',
-                        style: Theme.of(context).textTheme.titleLarge
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleLarge
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -142,9 +146,7 @@ class HomePage extends StatelessWidget {
                 if (controller.status == ObjectViewStatus.loading)
                   const Center(child: CircularProgressIndicator())
                 else
-                  ...controller.items
-                      .take(3)
-                      .map(
+                  ...controller.items.take(3).map(
                         (report) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: ObjectReportCard(
