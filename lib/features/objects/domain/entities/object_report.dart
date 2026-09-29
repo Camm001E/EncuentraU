@@ -1,3 +1,5 @@
+import 'object_image_analysis.dart';
+
 enum ReportType { lost, found }
 
 enum ReportStatus { active, matched, delivered }
@@ -32,6 +34,7 @@ class ObjectReport {
     required this.privateFeature,
     required this.status,
     this.imageLabel,
+    this.imageAnalysis,
   });
 
   final String id;
@@ -45,4 +48,7 @@ class ObjectReport {
   final String privateFeature;
   final ReportStatus status;
   final String? imageLabel;
+
+  // Resultado generado por Gemini al analizar la fotografía.
+  final ObjectImageAnalysis? imageAnalysis;
 }

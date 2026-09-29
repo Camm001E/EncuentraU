@@ -38,10 +38,12 @@ class EncuentraUApp extends StatelessWidget {
         AppRoutes.registerLost: (_) => RegisterObjectPage(
               type: ReportType.lost,
               controller: dependencies.objectController,
+              analysisController: dependencies.objectAnalysisController,
             ),
         AppRoutes.registerFound: (_) => RegisterObjectPage(
               type: ReportType.found,
               controller: dependencies.objectController,
+              analysisController: dependencies.objectAnalysisController,
             ),
         AppRoutes.objects: (_) => ObjectsPage(
               controller: dependencies.objectController,
