@@ -28,9 +28,8 @@ class ObjectReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLost = report.type == ReportType.lost;
-    final typeColor = isLost
-        ? const Color(0xFFB4513E)
-        : const Color(0xFF176B52);
+    final typeColor =
+        isLost ? const Color(0xFFB4513E) : const Color(0xFF176B52);
 
     return Card(
       elevation: 0,
@@ -60,7 +59,9 @@ class ObjectReportCard extends StatelessWidget {
                     children: [
                       Text(
                         report.category,
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       Container(
