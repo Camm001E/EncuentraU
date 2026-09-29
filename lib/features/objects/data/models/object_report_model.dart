@@ -13,9 +13,12 @@ class ObjectReportModel extends ObjectReport {
     required super.privateFeature,
     required super.status,
     super.imageLabel,
+    super.imageAnalysis,
   });
 
-  factory ObjectReportModel.fromEntity(ObjectReport report) {
+  factory ObjectReportModel.fromEntity(
+    ObjectReport report,
+  ) {
     return ObjectReportModel(
       id: report.id,
       type: report.type,
@@ -28,6 +31,7 @@ class ObjectReportModel extends ObjectReport {
       privateFeature: report.privateFeature,
       status: report.status,
       imageLabel: report.imageLabel,
+      imageAnalysis: report.imageAnalysis,
     );
   }
 }
