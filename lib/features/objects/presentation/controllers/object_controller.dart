@@ -10,8 +10,8 @@ class ObjectController extends ChangeNotifier {
   ObjectController({
     required GetObjects getObjects,
     required RegisterObject registerObject,
-  }) : _getObjects = getObjects,
-       _registerObject = registerObject;
+  })  : _getObjects = getObjects,
+        _registerObject = registerObject;
 
   final GetObjects _getObjects;
   final RegisterObject _registerObject;

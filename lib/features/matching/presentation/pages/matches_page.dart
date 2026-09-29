@@ -31,7 +31,9 @@ class MatchesPage extends StatelessWidget {
               const SizedBox(height: 18),
               Text(
                 '${matches.length} coincidencias encontradas',
-                style: Theme.of(context).textTheme.titleLarge
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
                     ?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 12),
@@ -100,8 +102,8 @@ class _MatchCard extends StatelessWidget {
     final color = percentage >= 90
         ? AppTheme.primary
         : percentage >= 70
-        ? const Color(0xFFC28316)
-        : const Color(0xFF66736F);
+            ? const Color(0xFFC28316)
+            : const Color(0xFF66736F);
 
     return Card(
       elevation: 0,
@@ -135,7 +137,9 @@ class _MatchCard extends StatelessWidget {
                     children: [
                       Text(
                         match.level,
-                        style: Theme.of(context).textTheme.titleMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 4),
