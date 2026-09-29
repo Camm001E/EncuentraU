@@ -1,46 +1,51 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_colors.dart';
+import '../constants/app_sizes.dart';
+
 abstract final class AppTheme {
-  static const Color primary = Color(0xFF176B52);
-  static const Color secondary = Color(0xFFF2B84B);
-  static const Color background = Color(0xFFF5F7F6);
+  // Compatibilidad con las pantallas antiguas.
+  static const Color primary = AppColors.primary;
 
   static ThemeData get light {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: primary,
+      seedColor: AppColors.primary,
       brightness: Brightness.light,
-      primary: primary,
-      secondary: secondary,
-      surface: Colors.white,
+      primary: AppColors.primary,
+      secondary: AppColors.secondary,
+      surface: AppColors.surface,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: background,
+      scaffoldBackgroundColor: AppColors.background,
       appBarTheme: const AppBarTheme(
         centerTitle: false,
-        backgroundColor: Colors.white,
-        foregroundColor: Color(0xFF17372D),
+        backgroundColor: AppColors.surface,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: AppColors.surface,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFD8E2DE)),
+          borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFD8E2DE)),
+          borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSizes.buttonHorizontalPadding,
+            vertical: AppSizes.spacingMedium,
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
           ),
         ),
       ),

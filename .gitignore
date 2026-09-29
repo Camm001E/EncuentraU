@@ -30,3 +30,5 @@ __pycache__/
 .ruff_cache/
 .venv/
 backend/.env
+# Widget Preview related
+.widget_preview/

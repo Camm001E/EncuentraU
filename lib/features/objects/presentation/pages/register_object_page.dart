@@ -32,6 +32,7 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
     'Morral',
     'Otro',
   ];
+
   static const _colors = [
     'Negro',
     'Blanco',
@@ -72,11 +73,16 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
       firstDate: DateTime(2024),
       lastDate: DateTime.now(),
     );
-    if (selected != null) setState(() => _eventDate = selected);
+
+    if (selected != null) {
+      setState(() => _eventDate = selected);
+    }
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     final report = ObjectReport(
       id: 'local-${DateTime.now().microsecondsSinceEpoch}',
@@ -91,19 +97,24 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
       eventDate: _eventDate,
       privateFeature: _privateFeatureController.text.trim(),
       status: ReportStatus.active,
-      imageLabel: _imageSelected
-          ? 'Imagen seleccionada en la simulación'
-          : null,
+      imageLabel:
+          _imageSelected ? 'Imagen seleccionada en la simulación' : null,
     );
 
     final success = await widget.controller.register(report);
-    if (!mounted) return;
+
+    if (!mounted) {
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(widget.controller.message ?? 'Proceso terminado.'),
+        content: Text(
+          widget.controller.message ?? 'Proceso terminado.',
+        ),
       ),
     );
+
     if (success) {
       widget.controller.clearMessage();
       Navigator.pushReplacementNamed(context, AppRoutes.objects);
@@ -112,12 +123,13 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _isLost
-        ? 'Reportar objeto perdido'
-        : 'Reportar objeto encontrado';
+    final title =
+        _isLost ? 'Reportar objeto perdido' : 'Reportar objeto encontrado';
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+      ),
       body: AnimatedBuilder(
         animation: widget.controller,
         builder: (context, _) {
@@ -135,7 +147,9 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                       const SizedBox(height: 20),
                       _ImageSelector(
                         selected: _imageSelected,
-                        onPressed: () => setState(() => _imageSelected = true),
+                        onPressed: () {
+                          setState(() => _imageSelected = true);
+                        },
                       ),
                       const SizedBox(height: 18),
                       Row(
@@ -143,10 +157,12 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: _category,
+                              initialValue: _category,
                               decoration: const InputDecoration(
                                 labelText: 'Tipo de objeto',
-                                prefixIcon: Icon(Icons.category_outlined),
+                                prefixIcon: Icon(
+                                  Icons.category_outlined,
+                                ),
                               ),
                               items: _categories
                                   .map(
@@ -166,10 +182,12 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: _color,
+                              initialValue: _color,
                               decoration: const InputDecoration(
                                 labelText: 'Color principal',
-                                prefixIcon: Icon(Icons.palette_outlined),
+                                prefixIcon: Icon(
+                                  Icons.palette_outlined,
+                                ),
                               ),
                               items: _colors
                                   .map(
@@ -180,8 +198,9 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                                   )
                                   .toList(),
                               onChanged: (value) {
-                                if (value != null)
+                                if (value != null) {
                                   setState(() => _color = value);
+                                }
                               },
                             ),
                           ),
@@ -205,7 +224,9 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                           hintText:
                               'Ejemplo: audífonos negros con estuche ovalado',
                           alignLabelWithHint: true,
-                          prefixIcon: Icon(Icons.description_outlined),
+                          prefixIcon: Icon(
+                            Icons.description_outlined,
+                          ),
                         ),
                         validator: _requiredField,
                       ),
@@ -216,7 +237,9 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                           labelText: _isLost
                               ? 'Lugar aproximado donde se perdió'
                               : 'Lugar donde se encontró',
-                          prefixIcon: const Icon(Icons.location_on_outlined),
+                          prefixIcon: const Icon(
+                            Icons.location_on_outlined,
+                          ),
                         ),
                         validator: _requiredField,
                       ),
@@ -227,7 +250,9 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                         child: InputDecorator(
                           decoration: const InputDecoration(
                             labelText: 'Fecha del suceso',
-                            prefixIcon: Icon(Icons.calendar_today_outlined),
+                            prefixIcon: Icon(
+                              Icons.calendar_today_outlined,
+                            ),
                           ),
                           child: Text(formatDate(_eventDate)),
                         ),
@@ -243,7 +268,9 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                               ? 'Algo que solo el propietario conozca'
                               : 'Detalle que no se publicará abiertamente',
                           alignLabelWithHint: true,
-                          prefixIcon: const Icon(Icons.shield_outlined),
+                          prefixIcon: const Icon(
+                            Icons.shield_outlined,
+                          ),
                         ),
                         validator: _requiredField,
                       ),
@@ -259,7 +286,9 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Icon(Icons.check_circle_outline_rounded),
+                            : const Icon(
+                                Icons.check_circle_outline_rounded,
+                              ),
                         label: Text(
                           widget.controller.isSaving
                               ? 'Guardando simulación...'
@@ -278,14 +307,18 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
   }
 
   String? _requiredField(String? value) {
-    if (value == null || value.trim().isEmpty)
+    if (value == null || value.trim().isEmpty) {
       return 'Este campo es obligatorio.';
+    }
+
     return null;
   }
 }
 
 class _FormIntro extends StatelessWidget {
-  const _FormIntro({required this.isLost});
+  const _FormIntro({
+    required this.isLost,
+  });
 
   final bool isLost;
 
@@ -309,8 +342,13 @@ class _FormIntro extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              isLost ? 'Describe el objeto con el mayor detalle posible.' : 'Registra el objeto sin revelar públicamente sus detalles privados.',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              isLost
+                  ? 'Describe el objeto con el mayor detalle posible.'
+                  : 'Registra el objeto sin revelar públicamente '
+                      'sus detalles privados.',
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -320,7 +358,10 @@ class _FormIntro extends StatelessWidget {
 }
 
 class _ImageSelector extends StatelessWidget {
-  const _ImageSelector({required this.selected, required this.onPressed});
+  const _ImageSelector({
+    required this.selected,
+    required this.onPressed,
+  });
 
   final bool selected;
   final VoidCallback onPressed;
@@ -332,7 +373,9 @@ class _ImageSelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFD8E2DE)),
+        border: Border.all(
+          color: const Color(0xFFD8E2DE),
+        ),
       ),
       child: Column(
         children: [
@@ -344,19 +387,25 @@ class _ImageSelector extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             selected ? 'Imagen simulada seleccionada' : 'Agrega una fotografía',
-            style: const TextStyle(fontWeight: FontWeight.w700),
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 4),
           const Text(
             'En la versión final se utilizará cámara o galería.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFF587068)),
+            style: TextStyle(
+              color: Color(0xFF587068),
+            ),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: onPressed,
             icon: const Icon(Icons.photo_library_outlined),
-            label: Text(selected ? 'Cambiar imagen' : 'Seleccionar imagen'),
+            label: Text(
+              selected ? 'Cambiar imagen' : 'Seleccionar imagen',
+            ),
           ),
         ],
       ),
