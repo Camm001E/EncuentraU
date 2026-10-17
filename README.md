@@ -145,9 +145,43 @@ El token pertenece al mismo navegador y origen; cambiar puerto, hostname, perfil
 o usar modo privado puede cambiar el almacenamiento disponible. La prueba local
 usa `http://localhost:8080`, y una publicación deberá usar HTTPS.
 
-Este repositorio contiene plataforma web y no tiene carpeta `android/`. No se
-generaron plataformas ni se cambió `minSdk`. La versión elegida del plugin
-requiere Android API 23 si más adelante se incorpora esa plataforma.
+El proyecto incluye web y Android. Android usa Kotlin, nombre visible
+`EncuentraU`, namespace y Application ID `com.encuentrau.app`, SDK de compilación
+y destino 36, NDK `28.2.13676358` y CMake `3.22.1` instalado en el SDK local.
+La dependencia nativa JNI también usa SDK Platform 35; Gradle puede instalarla
+automáticamente al compilar si sus licencias están aceptadas.
+El mínimo es API 24 (Android 7.0), requerido por Flutter e `image_picker_android`;
+`flutter_secure_storage 10.1.0` requiere API 23 y queda cubierto. `http` no añade
+un mínimo Android. Se deshabilitan los backups de la aplicación siguiendo la
+recomendación de secure storage para evitar restaurar datos sin sus claves.
+
+### Android local
+
+`API_BASE_URL` continúa configurándose mediante `--dart-define`:
+
+| Dispositivo | Dirección del backend |
+| --- | --- |
+| Edge en el computador | `http://127.0.0.1:8000` |
+| Emulador Android | `http://10.0.2.2:8000` |
+| Celular físico en la misma red | `http://IP_LOCAL_DEL_PC:8000` |
+
+Para un celular físico, Uvicorn debe escuchar en `0.0.0.0` y el firewall debe
+permitir el puerto de desarrollo. La IP del computador se pasa al ejecutar
+Flutter; no se guarda en Dart ni en Android.
+
+```powershell
+flutter pub get
+flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8000
+flutter run -d ID_DEL_EMULADOR --dart-define=API_BASE_URL=http://10.0.2.2:8000
+```
+
+El APK queda en `build/app/outputs/flutter-apk/app-debug.apk`. El permiso
+`INTERNET` está en el manifiesto principal. El tráfico HTTP se permite solo
+en debug mediante su manifiesto; profile y release mantienen el bloqueo de
+cleartext y deben utilizar HTTPS. No se agregó configuración de firma release.
+
+`android/local.properties`, cachés, archivos de compilación y claves permanecen
+ignorados. Las rutas del SDK/JDK se configuran únicamente en el entorno local.
 
 ### Prueba manual y pgAdmin
 
