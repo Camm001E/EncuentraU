@@ -1,6 +1,14 @@
-import '../features/authentication/data/datasources/auth_mock_data_source.dart';
+import 'package:http/http.dart' as http;
+
+import '../features/authentication/data/datasources/auth_remote_data_source.dart';
+import '../features/authentication/data/datasources/secure_token_storage.dart';
+import '../features/authentication/data/datasources/token_storage.dart';
 import '../features/authentication/data/repositories/auth_repository_impl.dart';
+import '../features/authentication/domain/repositories/auth_repository.dart';
+import '../features/authentication/domain/usecases/login_user.dart';
+import '../features/authentication/domain/usecases/logout_user.dart';
 import '../features/authentication/domain/usecases/register_user.dart';
+import '../features/authentication/domain/usecases/restore_session.dart';
 import '../features/authentication/presentation/controllers/auth_controller.dart';
 import '../features/matching/domain/usecases/find_matches.dart';
 import '../features/objects/data/datasources/object_analysis_remote_datasource.dart';
@@ -19,45 +27,65 @@ class DependencyContainer {
     required this.findMatches,
     required this.authController,
     required this.objectAnalysisController,
-  });
+    http.Client? ownedClient,
+  }) : _ownedClient = ownedClient;
+
+  final http.Client? _ownedClient;
 
   final ObjectController objectController;
   final FindMatches findMatches;
   final AuthController authController;
   final ObjectAnalysisController objectAnalysisController;
 
-  static DependencyContainer create() {
+  static DependencyContainer create({
+    http.Client? client,
+    TokenStorage? tokenStorage,
+    AuthRepository? authRepository,
+  }) {
+    final sharedClient = client ?? http.Client();
     // Dependencias para los objetos simulados.
     final objectDataSource = ObjectMockDataSource();
     final objectRepository = ObjectRepositoryImpl(
       objectDataSource,
     );
 
-    // Dependencias para el registro simulado.
-    final authDataSource = AuthMockDataSource();
-    final authRepository = AuthRepositoryImpl(
-      authDataSource,
-    );
+    final repository = authRepository ??
+        AuthRepositoryImpl(
+          AuthRemoteDataSource(client: sharedClient),
+          tokenStorage ?? const SecureTokenStorage(),
+        );
 
     // Dependencias para el análisis real de imágenes.
-    final objectAnalysisDataSource = ObjectAnalysisRemoteDataSource();
+    final objectAnalysisDataSource =
+        ObjectAnalysisRemoteDataSource(client: sharedClient);
 
     final objectAnalysisRepository = ObjectAnalysisRepositoryImpl(
       objectAnalysisDataSource,
     );
 
     return DependencyContainer(
+      ownedClient: client == null ? sharedClient : null,
       objectController: ObjectController(
         getObjects: GetObjects(objectRepository),
         registerObject: RegisterObject(objectRepository),
       ),
       findMatches: const FindMatches(),
       authController: AuthController(
-        RegisterUser(authRepository),
+        registerUser: RegisterUser(repository),
+        loginUser: LoginUser(repository),
+        restoreSession: RestoreSession(repository),
+        logoutUser: LogoutUser(repository),
       ),
       objectAnalysisController: ObjectAnalysisController(
         AnalyzeObjectImage(objectAnalysisRepository),
       ),
     );
+  }
+
+  void dispose() {
+    authController.dispose();
+    objectController.dispose();
+    objectAnalysisController.dispose();
+    _ownedClient?.close();
   }
 }

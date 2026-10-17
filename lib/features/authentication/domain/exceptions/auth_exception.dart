@@ -1,11 +1,17 @@
-sealed class AuthException implements Exception {
-  const AuthException();
+enum AuthFailure {
+  invalidCredentials,
+  sessionExpired,
+  inactiveAccount,
+  duplicateAccount,
+  invalidData,
+  server,
+  connection,
+  invalidResponse,
+  storage,
+  unexpected,
 }
 
-final class EmailAlreadyRegisteredException extends AuthException {
-  const EmailAlreadyRegisteredException();
-}
-
-final class WeakPasswordException extends AuthException {
-  const WeakPasswordException();
+final class AuthException implements Exception {
+  const AuthException(this.failure);
+  final AuthFailure failure;
 }

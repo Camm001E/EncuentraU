@@ -1,5 +1,6 @@
 abstract final class AppRoutes {
-  static const String login = '/';
+  static const String session = '/';
+  static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String home = '/home';
   static const String registerLost = '/objects/register-lost';
