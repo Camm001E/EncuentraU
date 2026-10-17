@@ -4,6 +4,7 @@ import '../core/constants/app_strings.dart';
 import '../core/theme/app_theme.dart';
 import '../features/authentication/presentation/pages/login_page.dart';
 import '../features/authentication/presentation/pages/register_page.dart';
+import '../features/authentication/presentation/pages/session_page.dart';
 import '../features/matching/presentation/pages/matches_page.dart';
 import '../features/objects/domain/entities/object_report.dart';
 import '../features/objects/presentation/pages/home_page.dart';
@@ -26,33 +27,44 @@ class EncuentraUApp extends StatelessWidget {
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      initialRoute: AppRoutes.login,
+      initialRoute: AppRoutes.session,
       routes: {
-        AppRoutes.login: (_) => const LoginPage(),
+        AppRoutes.session: (_) =>
+            SessionPage(controller: dependencies.authController),
+        AppRoutes.login: (_) =>
+            LoginPage(controller: dependencies.authController),
         AppRoutes.register: (_) => RegisterPage(
               controller: dependencies.authController,
             ),
-        AppRoutes.home: (_) => HomePage(
+        AppRoutes.home: (_) => _protected(() => HomePage(
               controller: dependencies.objectController,
-            ),
-        AppRoutes.registerLost: (_) => RegisterObjectPage(
+              authController: dependencies.authController,
+            )),
+        AppRoutes.registerLost: (_) => _protected(() => RegisterObjectPage(
               type: ReportType.lost,
               controller: dependencies.objectController,
               analysisController: dependencies.objectAnalysisController,
-            ),
-        AppRoutes.registerFound: (_) => RegisterObjectPage(
+            )),
+        AppRoutes.registerFound: (_) => _protected(() => RegisterObjectPage(
               type: ReportType.found,
               controller: dependencies.objectController,
               analysisController: dependencies.objectAnalysisController,
-            ),
-        AppRoutes.objects: (_) => ObjectsPage(
+            )),
+        AppRoutes.objects: (_) => _protected(() => ObjectsPage(
               controller: dependencies.objectController,
-            ),
-        AppRoutes.matches: (_) => MatchesPage(
+            )),
+        AppRoutes.matches: (_) => _protected(() => MatchesPage(
               controller: dependencies.objectController,
               findMatches: dependencies.findMatches,
-            ),
+            )),
       },
     );
   }
+
+  Widget _protected(Widget Function() builder) => AnimatedBuilder(
+        animation: dependencies.authController,
+        builder: (_, __) => dependencies.authController.isAuthenticated
+            ? builder()
+            : LoginPage(controller: dependencies.authController),
+      );
 }
