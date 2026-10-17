@@ -1,7 +1,7 @@
 name: encuentra_u
-description: Prototipo Flutter de EncuentraU con Clean Architecture y datos simulados.
+description: Cliente Flutter de EncuentraU con autenticación, reportes y coincidencias remotas.
 publish_to: "none"
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ">=3.3.0 <4.0.0"

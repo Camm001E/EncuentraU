@@ -14,6 +14,11 @@ abstract final class ApiConstants {
     'Accept': 'application/json',
   };
   static const int ok = 200;
+  static const int noContent = 204;
+  static const int badRequest = 400;
+  static const int notFound = 404;
+  static const int payloadTooLarge = 413;
+  static const int unsupportedMediaType = 415;
   static const int created = 201;
   static const int unauthorized = 401;
   static const int forbidden = 403;
@@ -21,6 +26,36 @@ abstract final class ApiConstants {
   static const int unprocessable = 422;
   static const int serverError = 500;
   static const int lastServerError = 599;
+  static const String bearerPrefix = 'Bearer ';
+  static const String reportsPath = '/api/v1/reports';
+  static const String myReportsPath = '$reportsPath/me';
+  static const String matchesPath = '/api/v1/matches';
+  static const String myMatchesPath = '$matchesPath/me';
+  static String reportPath(String id) =>
+      '$reportsPath/${Uri.encodeComponent(id)}';
+  static String matchPath(String id) =>
+      '$matchesPath/${Uri.encodeComponent(id)}';
+  static String generateMatchesPath(String id) =>
+      '${reportPath(id)}/matches/generate';
+  static Uri uri(String path, [Map<String, String>? query]) =>
+      Uri.parse('$baseUrl$path').replace(queryParameters: query);
+  static const String limitParameter = 'limit';
+  static const String offsetParameter = 'offset';
+  static const String reportTypeParameter = 'report_type';
+  static const String statusParameter = 'status';
+  static const String levelParameter = 'level';
+  static const int defaultPageSize = 20;
+  static const int maxPageSize = 100;
+  static const int maxPercentage = 100;
+  static const int objectTypeMaxLength = 200;
+  static const int categoryMaxLength = 100;
+  static const int colorMaxLength = 100;
+  static const int brandMaxLength = 100;
+  static const int shapeMaxLength = 500;
+  static const int descriptionMaxLength = 5000;
+  static const int locationMaxLength = 300;
+  static const int privateFeatureMaxLength = 2000;
+  static const int maxSecondaryColors = 20;
 
   static const String imageField = 'image';
   static const String descriptionField = 'description';

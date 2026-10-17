@@ -1,0 +1,139 @@
+{
+  "percentage": 91,
+  "identity_percentage": 88.27,
+  "context_percentage": 100.0,
+  "evidence_coverage": 92.0,
+  "compatible": true,
+  "level": "high",
+  "factors": [
+    {
+      "name": "object_type",
+      "group": "identity",
+      "label": "Tipo de objeto",
+      "weight": 25,
+      "evaluable_weight": 25.0,
+      "score": 25.0,
+      "status": "match",
+      "explanation": "Los datos coinciden tras normalizar el texto."
+    },
+    {
+      "name": "category",
+      "group": "identity",
+      "label": "Categoría",
+      "weight": 5,
+      "evaluable_weight": 5.0,
+      "score": 5.0,
+      "status": "match",
+      "explanation": "Los datos coinciden tras normalizar el texto."
+    },
+    {
+      "name": "color",
+      "group": "identity",
+      "label": "Color",
+      "weight": 15,
+      "evaluable_weight": 15.0,
+      "score": 15.0,
+      "status": "match",
+      "explanation": "Los datos coinciden tras normalizar el texto."
+    },
+    {
+      "name": "brand",
+      "group": "identity",
+      "label": "Marca",
+      "weight": 10,
+      "evaluable_weight": 0.0,
+      "score": 0.0,
+      "status": "unknown",
+      "explanation": "Sin datos comparables; se excluye del máximo evaluable."
+    },
+    {
+      "name": "shape",
+      "group": "identity",
+      "label": "Forma",
+      "weight": 10,
+      "evaluable_weight": 10.0,
+      "score": 10.0,
+      "status": "match",
+      "explanation": "Los datos coinciden tras normalizar el texto."
+    },
+    {
+      "name": "visual_features",
+      "group": "identity",
+      "label": "Rasgos visuales",
+      "weight": 20,
+      "evaluable_weight": 20.0,
+      "score": 9.44,
+      "status": "partial",
+      "explanation": "Coincidencia parcial del 47% en este factor."
+    },
+    {
+      "name": "description",
+      "group": "identity",
+      "label": "Descripción del objeto",
+      "weight": 15,
+      "evaluable_weight": 15.0,
+      "score": 15.0,
+      "status": "match",
+      "explanation": "Los datos coinciden tras normalizar el texto."
+    },
+    {
+      "name": "location",
+      "group": "context",
+      "label": "Lugar",
+      "weight": 60,
+      "evaluable_weight": 60.0,
+      "score": 60.0,
+      "status": "match",
+      "explanation": "Los datos coinciden tras normalizar el texto."
+    },
+    {
+      "name": "date",
+      "group": "context",
+      "label": "Fecha",
+      "weight": 40,
+      "evaluable_weight": 40.0,
+      "score": 40.0,
+      "status": "match",
+      "explanation": "La pérdida y el hallazgo tienen la misma fecha."
+    }
+  ],
+  "warnings": [
+    "Faltan datos comparables en: Marca."
+  ],
+  "id": "60f3dd53-07b1-40b2-a5bc-a7978ad129c7",
+  "status": "pending",
+  "created_at": "2026-10-17T21:11:56.189608Z",
+  "updated_at": "2026-10-17T21:11:56.371454Z",
+  "my_report": {
+    "object_type": "audífonos de diadema",
+    "category": "electronica",
+    "primary_color": "negro",
+    "secondary_colors": [
+      "azul"
+    ],
+    "brand": null,
+    "shape": "arqueada",
+    "location": "Cafetería central",
+    "event_date": "2026-10-17",
+    "description": "Perdí unos audífonos negros en la cafetería central.",
+    "id": "073cc24c-80eb-460e-ba75-6dfccde01b20",
+    "report_type": "lost",
+    "status": "active"
+  },
+  "candidate_report": {
+    "object_type": "audifonos de diadema",
+    "category": "electronica",
+    "primary_color": "negro",
+    "secondary_colors": [
+      "azul"
+    ],
+    "brand": null,
+    "shape": "arqueada",
+    "location": "Cafetería central",
+    "event_date": "2026-10-17",
+    "description": "Encontré unos audífonos negros en la cafetería central.",
+    "id": "7fba2d64-21cb-494f-9de1-9079f562527f",
+    "report_type": "found",
+    "status": "active"
+  }
+}

@@ -163,9 +163,101 @@ abstract final class AppStrings {
   static const String foundPrivateFeatureHint =
       'Detalle que no se publicará abiertamente';
 
-  static const String savingReport = 'Guardando simulación...';
+  static const String savingReport = 'Guardando reporte...';
   static const String registerReport = 'Registrar reporte';
   static const String processCompleted = 'Proceso terminado.';
   static const String unidentifiedBrand = 'Sin identificar';
   static const String imageAnalysisBadge = 'Analizado con Gemini';
+
+  // Reportes y coincidencias persistentes
+  static const appVersion = '0.2.0';
+  static const myReports = 'Mis reportes';
+  static const matchesTitle = 'Coincidencias';
+  static const reportDetail = 'Detalle del reporte';
+  static const matchDetail = 'Detalle de la coincidencia';
+  static const editReport = 'Editar reporte';
+  static const cancelReport = 'Cancelar reporte';
+  static const cancelConfirmation =
+      '¿Quieres cancelar este reporte? Se conservará su historial.';
+  static const confirm = 'Confirmar';
+  static const dismiss = 'Volver';
+  static const saveChanges = 'Guardar cambios';
+  static const reportSaved = 'Reporte guardado correctamente.';
+  static const reportUpdated = 'Reporte actualizado correctamente.';
+  static const reportCancelled = 'Reporte cancelado correctamente.';
+  static const reportSavedMatchesFailed =
+      'Reporte guardado, pero no fue posible actualizar las coincidencias';
+  static const searchMatches = 'Buscar coincidencias';
+  static const generatingMatches = 'Buscando coincidencias...';
+  static const noReports = 'Todavía no tienes reportes en este filtro.';
+  static const noMatches = 'No hay coincidencias en este filtro.';
+  static const matchesHelp =
+      'Busca coincidencias desde el detalle de un reporte activo.';
+  static const retry = 'Reintentar';
+  static const refresh = 'Actualizar';
+  static const loadMore = 'Cargar más';
+  static const all = 'Todos';
+  static const lost = 'Perdido';
+  static const found = 'Encontrado';
+  static const active = 'Activo';
+  static const resolved = 'Resuelto';
+  static const cancelled = 'Cancelado';
+  static const pending = 'Pendiente';
+  static const accepted = 'Aceptada';
+  static const rejected = 'Rechazada';
+  static const highMatch = 'Coincidencia alta';
+  static const possibleMatch = 'Coincidencia posible';
+  static const lowMatch = 'Coincidencia baja';
+  static const identity = 'Identidad';
+  static const context = 'Contexto';
+  static const evidenceCoverage = 'Cobertura de evidencia';
+  static const evidenceFactors = 'Factores de coincidencia';
+  static const warnings = 'Observaciones';
+  static const myReport = 'Mi reporte';
+  static const candidateReport = 'Reporte candidato';
+  static const matchingFactor = 'Coincide';
+  static const partialFactor = 'Parcial';
+  static const differentFactor = 'Diferente';
+  static const unknownFactor = 'No evaluado';
+  static const compatible = 'Tipos compatibles';
+  static const incompatible = 'Tipos incompatibles';
+  static const categoryLabel = 'Categoría';
+  static const categoryHelp =
+      'Ejemplo: electronica, llaves, documentos, bolsos';
+  static const secondaryColorsLabel =
+      'Colores secundarios (separados por comas)';
+  static const shapeLabel = 'Forma (opcional)';
+  static const statusLabel = 'Estado';
+  static const levelLabel = 'Nivel';
+  static const locationLabel = 'Ubicación';
+  static const notAvailable = 'Sin información';
+  static const createdAtLabel = 'Creado';
+  static const updatedAtLabel = 'Actualizado';
+  static const reportReadOnly =
+      'Este reporte ya no está activo. Su historial permanece disponible.';
+  static const apiInvalidData = 'Revisa los campos y la fecha del reporte.';
+  static const apiNotFound = 'No se encontró el recurso solicitado.';
+  static const apiConflict =
+      'El reporte cambió o ya no está activo. Actualiza sus datos.';
+  static const apiTimeout = 'La solicitud tardó demasiado. Intenta nuevamente.';
+  static const apiInvalidResponse =
+      'No fue posible interpretar la respuesta del servidor.';
+  static const welcome = 'Hola, estudiante';
+  static const welcomeDescription =
+      'Reporta, compara y recupera objetos dentro de la universidad.';
+  static const lostAction = 'Perdí un objeto';
+  static const foundAction = 'Encontré un objeto';
+  static const lostActionDescription =
+      'Registra sus características y ubicación.';
+  static const foundActionDescription =
+      'Ayuda a que regrese con su propietario.';
+  static const viewReports = 'Ver reportes';
+  static const viewAll = 'Ver todos';
+  static const invalidDate = 'La fecha no puede ser futura.';
+  static const defaultCategory = 'electronica';
+  static String generatedCount(int count) =>
+      '$count coincidencias para este reporte.';
+  static String resultCount(int count) => '$count resultados';
+  static String percentage(num value) => '$value%';
+  static String factorPoints(num score, num maximum) => '$score / $maximum';
 }

@@ -1,235 +1,123 @@
 import 'package:flutter/material.dart';
-
 import '../../../../app/routes.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../authentication/presentation/controllers/auth_controller.dart';
 import '../controllers/object_controller.dart';
-import '../widgets/object_report_card.dart';
 import '../widgets/report_action_card.dart';
+import '../widgets/report_list.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage(
       {required this.controller, required this.authController, super.key});
-
   final ObjectController controller;
   final AuthController authController;
-
-  Future<void> _logout(BuildContext context) async {
-    final navigator = Navigator.of(context);
-    await authController.logout();
-    if (!navigator.mounted) return;
-    navigator.pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.travel_explore_rounded, color: AppTheme.primary),
-            SizedBox(width: 8),
-            Flexible(
-              child: Text(AppStrings.appName, overflow: TextOverflow.ellipsis),
-            ),
-          ],
-        ),
-        actions: [
-          AnimatedBuilder(
-            animation: authController,
-            builder: (context, _) => TextButton.icon(
-              onPressed: authController.isBusy ? null : () => _logout(context),
-              icon: authController.isBusy
-                  ? const SizedBox(
-                      width: AppSizes.spacingLarge,
-                      height: AppSizes.spacingLarge,
-                      child: CircularProgressIndicator())
-                  : const Icon(Icons.logout_rounded),
-              label: Text(authController.isBusy
-                  ? AppStrings.signingOut
-                  : AppStrings.signOut),
-            ),
-          ),
-          IconButton(
-            onPressed: () => showAboutDialog(
-              context: context,
-              applicationName: 'EncuentraU',
-              applicationVersion: 'Prototipo 0.1.0',
-              applicationLegalese:
-                  'Simulación local construida con Clean Architecture.',
-            ),
-            icon: const Icon(Icons.info_outline_rounded),
-            tooltip: 'Acerca del prototipo',
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: AnimatedBuilder(
-        animation: controller,
-        builder: (context, _) {
-          return RefreshIndicator(
-            onRefresh: controller.loadObjects,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-              children: [
-                const _WelcomeBanner(),
-                const SizedBox(height: 22),
-                Text(
-                  '¿Qué deseas reportar?',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 12),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final cards = [
-                      ReportActionCard(
-                        icon: Icons.search_off_rounded,
-                        title: 'Perdí un objeto',
-                        description:
-                            'Registra sus características y ubicación.',
-                        color: const Color(0xFFB4513E),
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.registerLost,
-                        ),
-                      ),
-                      ReportActionCard(
-                        icon: Icons.volunteer_activism_rounded,
-                        title: 'Encontré un objeto',
-                        description: 'Ayuda a que regrese con su propietario.',
-                        color: AppTheme.primary,
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.registerFound,
-                        ),
-                      ),
-                    ];
-
-                    if (constraints.maxWidth >= 760) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: cards[0]),
-                          const SizedBox(width: 14),
-                          Expanded(child: cards[1]),
-                        ],
-                      );
-                    }
-                    return Column(
-                      children: [
-                        cards[0],
-                        const SizedBox(height: 12),
-                        cards[1],
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, AppRoutes.objects),
-                        icon: const Icon(Icons.inventory_2_outlined),
-                        label: const Text('Ver reportes'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.tonalIcon(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, AppRoutes.matches),
-                        icon: const Icon(Icons.auto_awesome_rounded),
-                        label: const Text('Coincidencias'),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 26),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Actividad reciente',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, AppRoutes.objects),
-                      child: const Text('Ver todos'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                if (controller.status == ObjectViewStatus.loading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  ...controller.items.take(3).map(
-                        (report) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: ObjectReportCard(
-                            report: report,
-                            compact: true,
-                          ),
-                        ),
-                      ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _WelcomeBanner extends StatelessWidget {
-  const _WelcomeBanner();
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.controller.ensureLoaded();
+    });
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: AppTheme.primary,
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: const Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Hola, estudiante',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                SizedBox(height: 6),
-                Text(
-                  'Reporta, compara y recupera objetos dentro de la universidad.',
-                  style: TextStyle(color: Color(0xFFDDEFE9)),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 14),
-          Icon(Icons.school_rounded, color: Colors.white, size: 48),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text(AppStrings.appName), actions: [
+          AnimatedBuilder(
+              animation: widget.authController,
+              builder: (context, _) => TextButton.icon(
+                  onPressed: widget.authController.isBusy
+                      ? null
+                      : () => widget.authController.logout(),
+                  icon: const Icon(Icons.logout_rounded),
+                  label: Text(widget.authController.isBusy
+                      ? AppStrings.signingOut
+                      : AppStrings.signOut))),
+          IconButton(
+              tooltip: AppStrings.appVersion,
+              onPressed: () => showAboutDialog(
+                  context: context,
+                  applicationName: AppStrings.appName,
+                  applicationVersion: AppStrings.appVersion),
+              icon: const Icon(Icons.info_outline)),
+        ]),
+        body: AnimatedBuilder(
+            animation: widget.controller,
+            builder: (context, _) => RefreshIndicator(
+                onRefresh: widget.controller.refresh,
+                child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(AppSizes.spacingMLarge),
+                    children: [
+                      Container(
+                          padding: const EdgeInsets.all(AppSizes.spacingLarge),
+                          decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius:
+                                  BorderRadius.circular(AppSizes.radiusXLarge)),
+                          child: const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(AppStrings.welcome,
+                                    style: TextStyle(
+                                        color: AppColors.surface,
+                                        fontWeight: FontWeight.w800)),
+                                SizedBox(height: AppSizes.spacingSmall),
+                                Text(AppStrings.welcomeDescription,
+                                    style: TextStyle(color: AppColors.surface)),
+                              ])),
+                      const SizedBox(height: AppSizes.spacingLarge),
+                      LayoutBuilder(builder: (context, constraints) {
+                        final cards = [
+                          ReportActionCard(
+                              icon: Icons.search_off_rounded,
+                              title: AppStrings.lostAction,
+                              description: AppStrings.lostActionDescription,
+                              color: AppColors.lost,
+                              onTap: () => Navigator.pushNamed(
+                                  context, AppRoutes.registerLost)),
+                          ReportActionCard(
+                              icon: Icons.volunteer_activism_rounded,
+                              title: AppStrings.foundAction,
+                              description: AppStrings.foundActionDescription,
+                              color: AppColors.primary,
+                              onTap: () => Navigator.pushNamed(
+                                  context, AppRoutes.registerFound)),
+                        ];
+                        return constraints.maxWidth >= AppSizes.homeBreakpoint
+                            ? Row(children: [
+                                Expanded(child: cards[0]),
+                                const SizedBox(width: AppSizes.spacingRegular),
+                                Expanded(child: cards[1])
+                              ])
+                            : Column(children: cards);
+                      }),
+                      const SizedBox(height: AppSizes.spacingMedium),
+                      Wrap(
+                          spacing: AppSizes.spacingRegular,
+                          runSpacing: AppSizes.spacingSmall,
+                          children: [
+                            OutlinedButton.icon(
+                                onPressed: () => Navigator.pushNamed(
+                                    context, AppRoutes.objects),
+                                icon: const Icon(Icons.inventory_2_outlined),
+                                label: const Text(AppStrings.viewReports)),
+                            FilledButton.tonalIcon(
+                                onPressed: () => Navigator.pushNamed(
+                                    context, AppRoutes.matches),
+                                icon: const Icon(Icons.auto_awesome),
+                                label: const Text(AppStrings.matchesTitle)),
+                          ]),
+                      const SizedBox(height: AppSizes.spacingLarge),
+                      Text(AppStrings.myReports,
+                          style: Theme.of(context).textTheme.titleLarge),
+                      ReportList(controller: widget.controller, compact: true),
+                    ]))),
+      );
 }
