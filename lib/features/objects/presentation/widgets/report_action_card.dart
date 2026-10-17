@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class ReportActionCard extends StatelessWidget {
   const ReportActionCard({
@@ -34,7 +35,7 @@ class ReportActionCard extends StatelessWidget {
                   color: color,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: Colors.white, size: 30),
+                child: Icon(icon, color: AppColors.surface, size: 30),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -51,7 +52,7 @@ class ReportActionCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: const TextStyle(color: Color(0xFF587068)),
+                      style: const TextStyle(color: AppColors.textSecondary),
                     ),
                   ],
                 ),

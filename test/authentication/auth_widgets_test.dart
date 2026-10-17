@@ -59,13 +59,34 @@ Future<void> fillRegistration(WidgetTester tester,
       find.widgetWithText(FilledButton, AppStrings.registerButton));
 }
 
+http.Response emptyReports() => http.Response(
+    jsonEncode({
+      'items': [],
+      'total': 0,
+      'limit': ApiConstants.defaultPageSize,
+      'offset': 0,
+    }),
+    ApiConstants.ok);
+DependencyContainer fakeDependencies(FakeAuthRepository repository) {
+  final client = MockClient((request) async {
+    expect(request.url.path, ApiConstants.myReportsPath);
+    expect(request.headers['authorization'], 'Bearer $testToken');
+    return emptyReports();
+  });
+  addTearDown(client.close);
+  return DependencyContainer.create(
+      authRepository: repository,
+      client: client,
+      tokenStorage: MemoryTokenStorage(testToken));
+}
+
 void main() {
   testWidgets('cerrar sesión permanece visible en Home con ancho de móvil',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final repo = FakeAuthRepository()..onRestore = () async => testUser;
-    final dependencies = DependencyContainer.create(authRepository: repo);
+    final dependencies = fakeDependencies(repo);
     addTearDown(dependencies.dispose);
     await tester.pumpWidget(EncuentraUApp(dependencies: dependencies));
     await tester.pumpAndSettle();
@@ -81,12 +102,17 @@ void main() {
     final requests = <String>[];
     final client = MockClient((request) async {
       requests.add(request.url.path);
+      if (request.url.path == ApiConstants.myReportsPath) {
+        expect(request.headers['authorization'], 'Bearer $testToken');
+        return emptyReports();
+      }
       if (request.url.path == ApiConstants.authLoginPath) {
         expect(request.method, 'POST');
         return http.Response(jsonEncode(sessionJson), 200);
       }
       expect(request.url.path, ApiConstants.authMePath);
       expect(request.headers['authorization'], 'Bearer $testToken');
+      if (request.url.path == ApiConstants.myReportsPath) return emptyReports();
       return http.Response(jsonEncode(userJson), 200);
     });
     addTearDown(client.close);
@@ -98,7 +124,11 @@ void main() {
     await fillLogin(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
-    expect(requests, [ApiConstants.authLoginPath, ApiConstants.authMePath]);
+    expect(requests, [
+      ApiConstants.authLoginPath,
+      ApiConstants.authMePath,
+      ApiConstants.myReportsPath
+    ]);
     expect(storage.token, testToken);
     expect(find.byType(HomePage), findsOneWidget);
     expect(
@@ -205,7 +235,7 @@ void main() {
     await largeSurface(tester);
     final pending = Completer<AppUser?>();
     final repo = FakeAuthRepository()..onRestore = () => pending.future;
-    final dependencies = DependencyContainer.create(authRepository: repo);
+    final dependencies = fakeDependencies(repo);
     addTearDown(dependencies.dispose);
     await tester.pumpWidget(EncuentraUApp(dependencies: dependencies));
     expect(find.text(AppStrings.restoringSession), findsOneWidget);
@@ -220,8 +250,7 @@ void main() {
   testWidgets('inicio sin token abre Login y protege acceso directo a Home',
       (tester) async {
     await largeSurface(tester);
-    final dependencies =
-        DependencyContainer.create(authRepository: FakeAuthRepository());
+    final dependencies = fakeDependencies(FakeAuthRepository());
     addTearDown(dependencies.dispose);
     await tester.pumpWidget(EncuentraUApp(dependencies: dependencies));
     await tester.pumpAndSettle();
@@ -239,6 +268,7 @@ void main() {
     final storage = MemoryTokenStorage(testToken);
     final client = MockClient((request) async {
       expect(request.headers['authorization'], 'Bearer $testToken');
+      if (request.url.path == ApiConstants.myReportsPath) return emptyReports();
       return http.Response(jsonEncode(userJson), 200);
     });
     addTearDown(client.close);

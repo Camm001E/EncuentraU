@@ -36,12 +36,11 @@ class ObjectAnalysisRemoteDataSource {
       );
 
     try {
-      final streamedResponse =
-          await _client.send(request).timeout(AppDurations.aiAnalysisTimeout);
-
-      final response = await http.Response.fromStream(
-        streamedResponse,
-      );
+      final response = await (() async {
+        final streamed = await _client.send(request);
+        return http.Response.fromStream(streamed);
+      })()
+          .timeout(AppDurations.aiAnalysisTimeout);
 
       final body = _decodeBody(response.bodyBytes);
 
@@ -93,19 +92,11 @@ class ObjectAnalysisRemoteDataSource {
     int statusCode,
     dynamic body,
   ) {
-    if (body is Map<String, dynamic>) {
-      final detail = body['detail'];
-
-      if (detail is String && detail.trim().isNotEmpty) {
-        return detail.trim();
-      }
-    }
-
-    if (statusCode == 413) {
+    if (statusCode == ApiConstants.payloadTooLarge) {
       return AppStrings.imageTooLarge;
     }
 
-    if (statusCode == 415) {
+    if (statusCode == ApiConstants.unsupportedMediaType) {
       return AppStrings.unsupportedImage;
     }
 

@@ -32,6 +32,7 @@ class AuthController extends ChangeNotifier {
   AppUser? _currentUser;
   String? _errorMessage;
   bool _disposed = false;
+  int _generation = 0;
 
   AuthStatus get status => _status;
   AppUser? get currentUser => _currentUser;
@@ -66,6 +67,8 @@ class AuthController extends ChangeNotifier {
 
   Future<void> logout() async {
     if (isBusy) return;
+    _generation++;
+    _currentUser = null;
     _begin(AuthOperation.logout);
     try {
       await _logoutUser();
@@ -84,25 +87,32 @@ class AuthController extends ChangeNotifier {
   Future<bool> _run(
       AuthOperation operation, Future<AppUser?> Function() work) async {
     if (isBusy) return false;
+    final generation = ++_generation;
     _currentUser = null;
     _begin(operation);
     try {
-      _currentUser = await work();
+      final user = await work();
+      if (_disposed || generation != _generation) return false;
+      _currentUser = user;
       _status = isAuthenticated
           ? AuthStatus.authenticated
           : AuthStatus.unauthenticated;
       return true;
     } on AuthException catch (error) {
+      if (_disposed || generation != _generation) return false;
       _errorMessage = _message(error.failure);
       _status = AuthStatus.error;
       return false;
     } catch (_) {
+      if (_disposed || generation != _generation) return false;
       _errorMessage = AppStrings.unexpectedError;
       _status = AuthStatus.error;
       return false;
     } finally {
-      _operation = null;
-      _notify();
+      if (!_disposed && generation == _generation) {
+        _operation = null;
+        _notify();
+      }
     }
   }
 
@@ -133,12 +143,23 @@ class AuthController extends ChangeNotifier {
     _notify();
   }
 
+  void expireSession({bool inactive = false}) {
+    _generation++;
+    _currentUser = null;
+    _operation = null;
+    _status = AuthStatus.unauthenticated;
+    _errorMessage =
+        inactive ? AppStrings.inactiveAccount : AppStrings.sessionExpired;
+    _notify();
+  }
+
   void _notify() {
     if (!_disposed) notifyListeners();
   }
 
   @override
   void dispose() {
+    _generation++;
     _disposed = true;
     super.dispose();
   }

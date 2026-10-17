@@ -1,68 +1,160 @@
-import 'package:flutter/foundation.dart';
-
+import '../../../../core/presentation/api_message.dart';
+import '../../../../core/presentation/paged_controller.dart';
 import '../../domain/entities/object_report.dart';
-import '../../domain/usecases/get_objects.dart';
+import '../../domain/entities/report_page.dart';
+import '../../domain/usecases/get_my_reports.dart';
+import '../../domain/usecases/get_my_report.dart';
 import '../../domain/usecases/register_object.dart';
+import '../../domain/usecases/update_object_report.dart';
+import '../../domain/usecases/cancel_object_report.dart';
 
-enum ObjectViewStatus { initial, loading, ready, saving, success, failure }
-
-class ObjectController extends ChangeNotifier {
-  ObjectController({
-    required GetObjects getObjects,
-    required RegisterObject registerObject,
-  })  : _getObjects = getObjects,
-        _registerObject = registerObject;
-
-  final GetObjects _getObjects;
-  final RegisterObject _registerObject;
-
-  List<ObjectReport> _items = const [];
-  ObjectViewStatus _status = ObjectViewStatus.initial;
-  String? _message;
-
-  List<ObjectReport> get items => List<ObjectReport>.unmodifiable(_items);
-  ObjectViewStatus get status => _status;
-  String? get message => _message;
-  bool get isSaving => _status == ObjectViewStatus.saving;
-
-  Future<void> loadObjects() async {
-    _status = ObjectViewStatus.loading;
-    notifyListeners();
-
-    try {
-      _items = await _getObjects();
-      _status = ObjectViewStatus.ready;
-    } catch (_) {
-      _status = ObjectViewStatus.failure;
-      _message = 'No fue posible cargar los objetos simulados.';
-    }
-    notifyListeners();
+class ObjectController extends PagedController<ObjectReport> {
+  ObjectController(
+      {required GetMyReports getMyReports,
+      required GetMyReport getMyReport,
+      required RegisterObject registerObject,
+      required UpdateObjectReport updateReport,
+      required CancelObjectReport cancelReport})
+      : _list = getMyReports,
+        _get = getMyReport,
+        _create = registerObject,
+        _update = updateReport,
+        _cancel = cancelReport;
+  final GetMyReports _list;
+  final GetMyReport _get;
+  final RegisterObject _create;
+  final UpdateObjectReport _update;
+  final CancelObjectReport _cancel;
+  ReportType? reportTypeFilter;
+  ReportStatus? statusFilter;
+  ObjectReport? detail;
+  LoadStatus detailStatus = LoadStatus.initial;
+  String? detailMessage;
+  String? actionMessage;
+  bool isSaving = false;
+  bool isUpdating = false;
+  bool isCancelling = false;
+  int _detailRequest = 0;
+  @override
+  String itemId(ObjectReport item) => item.id;
+  @override
+  Future<ReportPage> fetchPage(int limit, int offset) => _list(
+      limit: limit,
+      offset: offset,
+      reportType: reportTypeFilter,
+      status: statusFilter);
+  Future<void> setFilters(
+      {ReportType? reportType, ReportStatus? status}) async {
+    reportTypeFilter = reportType;
+    statusFilter = status;
+    await refresh();
   }
 
-  Future<bool> register(ObjectReport report) async {
-    _status = ObjectViewStatus.saving;
-    _message = null;
-    notifyListeners();
-
+  Future<void> loadDetail(String id) async {
+    final epoch = generation, request = ++_detailRequest;
+    detail = null;
+    detailMessage = null;
+    detailStatus = LoadStatus.loading;
+    notify();
     try {
-      await _registerObject(report);
-      _items = await _getObjects();
-      _status = ObjectViewStatus.success;
-      _message = 'El reporte fue registrado en la simulación.';
-      notifyListeners();
-      return true;
-    } catch (_) {
-      _status = ObjectViewStatus.failure;
-      _message = 'No fue posible registrar el reporte.';
-      notifyListeners();
+      final report = await _get(id);
+      if (!isCurrent(epoch) || request != _detailRequest) return;
+      detail = report;
+      detailStatus = LoadStatus.ready;
+    } catch (error) {
+      if (!isCurrent(epoch) || request != _detailRequest) return;
+      detailStatus = LoadStatus.error;
+      detailMessage = apiMessage(error);
+    } finally {
+      if (isCurrent(epoch) && request == _detailRequest) notify();
+    }
+  }
+
+  Future<ObjectReport?> register(ObjectReportDraft draft) async {
+    if (isSaving) return null;
+    final epoch = generation;
+    isSaving = true;
+    actionMessage = null;
+    notify();
+    try {
+      final report = await _create(draft);
+      if (!isCurrent(epoch)) return null;
+      detail = report;
+      detailStatus = LoadStatus.ready;
+      await refresh();
+      return isCurrent(epoch) ? report : null;
+    } catch (error) {
+      if (isCurrent(epoch)) actionMessage = apiMessage(error);
+      return null;
+    } finally {
+      if (isCurrent(epoch)) {
+        isSaving = false;
+        notify();
+      }
+    }
+  }
+
+  Future<bool> update(String id, ObjectReportUpdate update) async {
+    if (isUpdating || isCancelling) return false;
+    final epoch = generation;
+    isUpdating = true;
+    actionMessage = null;
+    notify();
+    try {
+      final report = await _update(id, update);
+      if (!isCurrent(epoch)) return false;
+      detail = report;
+      detailStatus = LoadStatus.ready;
+      await refresh();
+      return isCurrent(epoch);
+    } catch (error) {
+      if (isCurrent(epoch)) actionMessage = apiMessage(error);
       return false;
+    } finally {
+      if (isCurrent(epoch)) {
+        isUpdating = false;
+        notify();
+      }
     }
   }
 
-  void clearMessage() {
-    _message = null;
-    if (_status == ObjectViewStatus.success) {
-      _status = ObjectViewStatus.ready;
+  Future<bool> cancel(String id) async {
+    if (isCancelling || isUpdating) return false;
+    final epoch = generation;
+    isCancelling = true;
+    actionMessage = null;
+    notify();
+    try {
+      await _cancel(id);
+      if (!isCurrent(epoch)) return false;
+      detail = null;
+      detailStatus = LoadStatus.loading;
+      notify();
+      await Future.wait([refresh(), loadDetail(id)]);
+      return isCurrent(epoch);
+    } catch (error) {
+      if (isCurrent(epoch)) actionMessage = apiMessage(error);
+      return false;
+    } finally {
+      if (isCurrent(epoch)) {
+        isCancelling = false;
+        notify();
+      }
     }
+  }
+
+  @override
+  void clear() {
+    _detailRequest++;
+    detail = null;
+    detailStatus = LoadStatus.initial;
+    detailMessage = null;
+    actionMessage = null;
+    isSaving = false;
+    isUpdating = false;
+    isCancelling = false;
+    reportTypeFilter = null;
+    statusFilter = null;
+    super.clear();
   }
 }
