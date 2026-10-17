@@ -2,7 +2,7 @@ import '../../domain/entities/app_user.dart';
 import '../../domain/exceptions/auth_exception.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
-import '../datasources/token_storage.dart';
+import '../../../../core/storage/token_storage.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   const AuthRepositoryImpl(this._remote, this._tokens);

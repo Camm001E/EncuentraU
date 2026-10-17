@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'package:http/http.dart' as http;
-
+import '../core/errors/api_exception.dart';
+import '../core/network/authenticated_api_client.dart';
+import '../core/session/session_manager.dart';
+import '../core/storage/token_storage.dart';
 import '../features/authentication/data/datasources/auth_remote_data_source.dart';
 import '../features/authentication/data/datasources/secure_token_storage.dart';
-import '../features/authentication/data/datasources/token_storage.dart';
 import '../features/authentication/data/repositories/auth_repository_impl.dart';
 import '../features/authentication/domain/repositories/auth_repository.dart';
 import '../features/authentication/domain/usecases/login_user.dart';
@@ -10,81 +13,99 @@ import '../features/authentication/domain/usecases/logout_user.dart';
 import '../features/authentication/domain/usecases/register_user.dart';
 import '../features/authentication/domain/usecases/restore_session.dart';
 import '../features/authentication/presentation/controllers/auth_controller.dart';
-import '../features/matching/domain/usecases/find_matches.dart';
 import '../features/objects/data/datasources/object_analysis_remote_datasource.dart';
-import '../features/objects/data/datasources/object_mock_datasource.dart';
+import '../features/objects/data/datasources/object_report_remote_data_source.dart';
 import '../features/objects/data/repositories/object_analysis_repository_impl.dart';
 import '../features/objects/data/repositories/object_repository_impl.dart';
 import '../features/objects/domain/usecases/analyze_object_image.dart';
-import '../features/objects/domain/usecases/get_objects.dart';
+import '../features/objects/domain/usecases/get_my_reports.dart';
+import '../features/objects/domain/usecases/get_my_report.dart';
 import '../features/objects/domain/usecases/register_object.dart';
+import '../features/objects/domain/usecases/update_object_report.dart';
+import '../features/objects/domain/usecases/cancel_object_report.dart';
 import '../features/objects/presentation/controllers/object_analysis_controller.dart';
 import '../features/objects/presentation/controllers/object_controller.dart';
+import '../features/matching/data/datasources/match_remote_data_source.dart';
+import '../features/matching/data/repositories/match_repository_impl.dart';
+import '../features/matching/domain/usecases/generate_report_matches.dart';
+import '../features/matching/domain/usecases/get_my_matches.dart';
+import '../features/matching/domain/usecases/get_my_match.dart';
+import '../features/matching/presentation/controllers/match_controller.dart';
 
 class DependencyContainer {
-  const DependencyContainer({
-    required this.objectController,
-    required this.findMatches,
-    required this.authController,
-    required this.objectAnalysisController,
-    http.Client? ownedClient,
-  }) : _ownedClient = ownedClient;
-
-  final http.Client? _ownedClient;
-
+  DependencyContainer._(
+      {required this.objectController,
+      required this.matchController,
+      required this.authController,
+      required this.objectAnalysisController,
+      required this.session,
+      http.Client? ownedClient})
+      : _ownedClient = ownedClient {
+    _authListener = () {
+      final userId = authController.currentUser?.id;
+      if (userId != _userId) {
+        _userId = userId;
+        session.changeSession(active: userId != null);
+        objectController.clear();
+        matchController.clear();
+        objectAnalysisController.reset();
+      }
+    };
+    authController.addListener(_authListener);
+    _expiry = session.expired.listen((reason) =>
+        authController.expireSession(inactive: reason == ApiFailure.forbidden));
+  }
   final ObjectController objectController;
-  final FindMatches findMatches;
+  final MatchController matchController;
   final AuthController authController;
   final ObjectAnalysisController objectAnalysisController;
-
-  static DependencyContainer create({
-    http.Client? client,
-    TokenStorage? tokenStorage,
-    AuthRepository? authRepository,
-  }) {
+  final SessionManager session;
+  final http.Client? _ownedClient;
+  late final void Function() _authListener;
+  late final StreamSubscription<ApiFailure> _expiry;
+  String? _userId;
+  static DependencyContainer create(
+      {http.Client? client,
+      TokenStorage? tokenStorage,
+      AuthRepository? authRepository}) {
     final sharedClient = client ?? http.Client();
-    // Dependencias para los objetos simulados.
-    final objectDataSource = ObjectMockDataSource();
-    final objectRepository = ObjectRepositoryImpl(
-      objectDataSource,
-    );
-
-    final repository = authRepository ??
-        AuthRepositoryImpl(
-          AuthRemoteDataSource(client: sharedClient),
-          tokenStorage ?? const SecureTokenStorage(),
-        );
-
-    // Dependencias para el análisis real de imágenes.
-    final objectAnalysisDataSource =
-        ObjectAnalysisRemoteDataSource(client: sharedClient);
-
-    final objectAnalysisRepository = ObjectAnalysisRepositoryImpl(
-      objectAnalysisDataSource,
-    );
-
-    return DependencyContainer(
-      ownedClient: client == null ? sharedClient : null,
-      objectController: ObjectController(
-        getObjects: GetObjects(objectRepository),
-        registerObject: RegisterObject(objectRepository),
-      ),
-      findMatches: const FindMatches(),
-      authController: AuthController(
-        registerUser: RegisterUser(repository),
-        loginUser: LoginUser(repository),
-        restoreSession: RestoreSession(repository),
-        logoutUser: LogoutUser(repository),
-      ),
-      objectAnalysisController: ObjectAnalysisController(
-        AnalyzeObjectImage(objectAnalysisRepository),
-      ),
-    );
+    final session = SessionManager(tokenStorage ?? const SecureTokenStorage(),
+        active: false);
+    final api = AuthenticatedApiClient(client: sharedClient, session: session);
+    final objects = ObjectRepositoryImpl(ObjectReportRemoteDataSource(api));
+    final matches = MatchRepositoryImpl(MatchRemoteDataSource(api));
+    final authentication = authRepository ??
+        AuthRepositoryImpl(AuthRemoteDataSource(client: sharedClient), session);
+    return DependencyContainer._(
+        ownedClient: client == null ? sharedClient : null,
+        session: session,
+        objectController: ObjectController(
+            getMyReports: GetMyReports(objects),
+            getMyReport: GetMyReport(objects),
+            registerObject: RegisterObject(objects),
+            updateReport: UpdateObjectReport(objects),
+            cancelReport: CancelObjectReport(objects)),
+        matchController: MatchController(
+            generateReportMatches: GenerateReportMatches(matches),
+            getMyMatches: GetMyMatches(matches),
+            getMyMatch: GetMyMatch(matches)),
+        authController: AuthController(
+            registerUser: RegisterUser(authentication),
+            loginUser: LoginUser(authentication),
+            restoreSession: RestoreSession(authentication),
+            logoutUser: LogoutUser(authentication)),
+        objectAnalysisController: ObjectAnalysisController(AnalyzeObjectImage(
+            ObjectAnalysisRepositoryImpl(
+                ObjectAnalysisRemoteDataSource(client: sharedClient)))));
   }
 
   void dispose() {
+    authController.removeListener(_authListener);
+    unawaited(_expiry.cancel());
+    unawaited(session.dispose());
     authController.dispose();
     objectController.dispose();
+    matchController.dispose();
     objectAnalysisController.dispose();
     _ownedClient?.close();
   }
