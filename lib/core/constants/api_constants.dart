@@ -11,8 +11,7 @@ abstract final class ApiConstants {
 
   static const int minimumAnalysisDescriptionLength = 3;
   static const int maxImageSizeMb = 10;
-  static const int maxImageSizeBytes =
-      maxImageSizeMb * 1024 * 1024;
+  static const int maxImageSizeBytes = maxImageSizeMb * 1024 * 1024;
 
   static const Set<String> allowedImageMimeTypes = {
     'image/jpeg',
