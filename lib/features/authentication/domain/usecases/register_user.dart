@@ -13,9 +13,9 @@ class RegisterUser {
     required String password,
   }) {
     return _repository.register(
-      fullName: fullName.trim(),
+      fullName: fullName.trim().replaceAll(RegExp(r'\s+'), ' '),
       email: email.trim().toLowerCase(),
-      studentCode: studentCode.trim(),
+      studentCode: studentCode.trim().toUpperCase(),
       password: password,
     );
   }

@@ -7,4 +7,8 @@ abstract interface class AuthRepository {
     required String studentCode,
     required String password,
   });
+
+  Future<AppUser> login({required String email, required String password});
+  Future<AppUser?> restoreSession();
+  Future<void> logout();
 }

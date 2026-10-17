@@ -8,10 +8,6 @@ abstract final class AppStrings {
   static const String loginSubtitle =
       'Objetos perdidos, conexiones encontradas.';
 
-  static const String simulatedAccessMessage =
-      'Acceso simulado: utiliza cualquier correo válido y una contraseña de '
-      'mínimo ${AppValidation.minimumPasswordLength} caracteres.';
-
   static const String dontHaveAccount = '¿No tienes una cuenta?';
   static const String showPassword = 'Mostrar contraseña';
   static const String hidePassword = 'Ocultar contraseña';
@@ -47,10 +43,30 @@ abstract final class AppStrings {
   static const String passwordsDoNotMatch = 'Las contraseñas no coinciden.';
 
   // Resultados
-  static const String emailAlreadyRegistered =
-      'Ya existe una cuenta registrada con este correo.';
+  static const String accountAlreadyRegistered =
+      'El correo o el código estudiantil ya está registrado.';
 
-  static const String accountCreated = 'Cuenta creada correctamente.';
+  static const String accountCreated =
+      'Cuenta creada correctamente. Ahora inicia sesión.';
+  static const String signingIn = 'Iniciando sesión...';
+  static const String restoringSession = 'Restaurando tu sesión...';
+  static const String signingOut = 'Cerrando sesión...';
+  static const String signOut = 'Cerrar sesión';
+  static const String invalidCredentials = 'Correo o contraseña incorrectos.';
+  static const String sessionExpired =
+      'Tu sesión venció. Inicia sesión nuevamente.';
+  static const String inactiveAccount = 'Tu cuenta está inactiva.';
+  static const String invalidAuthData =
+      'Revisa los datos ingresados e inténtalo nuevamente.';
+  static const String authServerError =
+      'El servidor tiene un problema temporal. Inténtalo nuevamente.';
+  static const String authConnectionError =
+      'No fue posible conectar con el servidor. Inténtalo nuevamente.';
+  static const String invalidAuthResponse =
+      'No fue posible completar la autenticación. Inténtalo nuevamente.';
+  static const String secureStorageError =
+      'No fue posible actualizar el acceso guardado. Inténtalo nuevamente.';
+  static const String fieldTooLong = 'El valor ingresado es demasiado largo.';
 
   static const String unexpectedError =
       'Ocurrió un error inesperado. Inténtalo nuevamente.';
