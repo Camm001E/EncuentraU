@@ -1,12 +1,15 @@
 # EncuentraU
 
-Prototipo frontend en Flutter para registrar objetos perdidos y encontrados en una universidad. Está organizado con Clean Architecture y combina datos locales simulados con un cliente HTTP de reconocimiento visual.
+Frontend Flutter para objetos perdidos y encontrados en una universidad. Está
+organizado con Clean Architecture, autenticación real por HTTP y reconocimiento
+visual. Los reportes y las coincidencias del frontend siguen usando datos locales.
 
 ## Estado del avance
 
 Actualmente incluye:
 
-- Inicio de sesión simulado.
+- Registro e inicio de sesión reales contra FastAPI y PostgreSQL.
+- Restauración de sesión con JWT y cierre de sesión.
 - Pantalla principal adaptable a móvil y escritorio.
 - Registro de objetos perdidos y encontrados.
 - Selección de fotografía y análisis visual mediante una API externa.
@@ -16,7 +19,9 @@ Actualmente incluye:
 - Resultado demostrativo de 92% para el caso de los audífonos.
 - Solicitud simulada de validación de propiedad.
 
-Los reportes nuevos permanecen en memoria y se eliminan al reiniciar la aplicación. El reconocimiento visual utiliza el backend FastAPI independiente; la persistencia con PostgreSQL todavía está pendiente.
+Los usuarios se guardan en PostgreSQL mediante el backend independiente. Los
+reportes nuevos del frontend permanecen en memoria y se eliminan al reiniciar la
+aplicación; su persistencia será una fase posterior.
 
 ## Arquitectura
 
@@ -26,9 +31,11 @@ Presentation → Domain ← Data
 
 - `presentation`: pantallas, widgets y controlador de estado.
 - `domain`: entidades, contratos, casos de uso y cálculo de coincidencias.
-- `data`: modelos, repositorio y fuente de datos simulada.
+- `data`: modelos, repositorios, fuentes HTTP y almacenamiento seguro del token.
 
-La simulación utiliza `ObjectMockDataSource`. En una etapa posterior se puede reemplazar por `ObjectRemoteDataSource` para comunicarse con FastAPI sin modificar las reglas del dominio ni reconstruir las pantallas.
+Los objetos usan `ObjectMockDataSource`. La autenticación usa
+`AuthRemoteDataSource` y `AuthRepositoryImpl`; la fuente simulada de autenticación
+fue retirada. El dominio no importa HTTP, Flutter ni el plugin de almacenamiento.
 
 ## Estructura principal
 
@@ -52,23 +59,134 @@ lib/
 Requisitos:
 
 - Flutter instalado.
-- Google Chrome para ejecutar la versión web.
+- Microsoft Edge o Google Chrome para ejecutar la versión web.
 
 Comandos:
 
-```bash
+```powershell
 flutter pub get
-flutter run -d chrome
+flutter run -d edge --web-port 8080 `
+  --dart-define=API_BASE_URL=http://127.0.0.1:8000
 ```
 
-En el acceso inicial están precargados estos datos de demostración:
+Abre la aplicación en `http://localhost:8080`. El backend debe estar disponible
+antes de probar registro o login. Compruébalo sin iniciar otra instancia:
 
-```text
-Correo: estudiante@universidad.edu.co
-Contraseña: 1234
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+Invoke-RestMethod http://127.0.0.1:8000/health/database
 ```
 
-El acceso es simulado, por lo que también acepta cualquier correo válido y una contraseña de mínimo cuatro caracteres.
+Si no responde porque está detenido, inicia **una sola instancia** desde otra
+terminal, en el backend oficial:
+
+```powershell
+cd "C:\Users\Danilo Carlosama\Music\EncuentraU_backend\EncuentraU_Backend"
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+No cambies las variables existentes del backend para ejecutar Flutter. Su CORS
+debe permitir `http://localhost:8080`; utiliza ese mismo origen en el navegador.
+El frontend configura únicamente `API_BASE_URL` mediante `--dart-define`.
+`JWT_SECRET_KEY` y las credenciales de PostgreSQL pertenecen al backend y nunca
+deben incluirse en Flutter. No se necesitan archivos `.env` en este repositorio.
+
+## Autenticación remota
+
+Endpoints centralizados en `ApiConstants`:
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| POST | `/api/v1/auth/register` | Crear estudiante activo; no inicia sesión. |
+| POST | `/api/v1/auth/login` | Validar credenciales y recibir JWT. |
+| GET | `/api/v1/auth/me` | Restaurar usuario con `Authorization: Bearer ...`. |
+
+Los formularios comienzan vacíos. El registro envía `full_name`, `email`,
+`student_code` y `password`; normaliza nombre, email y código, preservando la
+contraseña. Exige contraseña de 8 a 128 caracteres y confirmación coincidente.
+Al terminar vuelve al login con el mensaje «Cuenta creada correctamente. Ahora
+inicia sesión.». Los botones y campos quedan bloqueados durante la petición.
+El login consulta `/auth/me` con el JWT recibido antes de guardarlo y abrir Home.
+
+`AppUser` contiene `UserRole` tipado e `isActive`. Los casos de uso son
+`RegisterUser`, `LoginUser`, `RestoreSession` y `LogoutUser`. El contenedor inyecta
+el mismo cliente `package:http` en autenticación y análisis de imágenes.
+
+Solo se persiste `access_token` mediante `TokenStorage` y
+`flutter_secure_storage`; no se guardan email, contraseña ni usuario. Una pantalla
+con la identidad visual de EncuentraU espera la restauración: sin token abre
+login; con token consulta `/auth/me` antes de abrir Home. Las respuestas 401/403
+eliminan el token rechazado. Una desconexión temporal conserva el token para
+poder reintentar y muestra un mensaje controlado en login.
+
+Home incluye **Cerrar sesión**: borra el token y vuelve al login eliminando el
+historial. El repositorio reintenta una vez si falla el borrado. Si el sistema de
+almacenamiento sigue fallando, la sesión en memoria se cierra y se muestra un
+error; no se afirma que el token persistente se haya borrado correctamente.
+
+Los errores HTTP se convierten en errores de dominio y mensajes de `AppStrings`:
+401 (credenciales incorrectas o sesión vencida), 403 (inactiva), 409 (duplicado),
+422 (datos inválidos), 500–599 (servidor temporalmente indisponible), conexión o
+timeout. No se muestra el cuerpo técnico, HTML ni trazas del servidor.
+
+### Almacenamiento y compatibilidad
+
+Se utiliza la versión estable `flutter_secure_storage 10.1.0`, compatible con el
+SDK instalado (Flutter 3.47.5 / Dart 3.13.4). `pubspec.lock` conserva las versiones
+comprobadas, incluidas `flutter_secure_storage_windows 4.1.0` y
+`path_provider_foundation 2.3.2`. La combinación más reciente introducía hooks
+nativos que no compilan en este entorno Windows con espacios en la ruta del SDK.
+Usa `flutter pub get` para reproducir estas versiones; revisa las pruebas antes de
+actualizar las dependencias.
+
+El almacenamiento web requiere HTTPS o localhost, según la
+[documentación del plugin](https://pub.dev/packages/flutter_secure_storage).
+El token pertenece al mismo navegador y origen; cambiar puerto, hostname, perfil
+o usar modo privado puede cambiar el almacenamiento disponible. La prueba local
+usa `http://localhost:8080`, y una publicación deberá usar HTTPS.
+
+Este repositorio contiene plataforma web y no tiene carpeta `android/`. No se
+generaron plataformas ni se cambió `minSdk`. La versión elegida del plugin
+requiere Android API 23 si más adelante se incorpora esa plataforma.
+
+### Prueba manual y pgAdmin
+
+1. Comprueba ambos health e inicia Flutter con el comando anterior.
+2. En **Crear cuenta**, usa email y código nuevos para evitar HTTP 409.
+3. Confirma que vuelve a login con el mensaje de cuenta creada.
+4. Inicia sesión y confirma Home.
+5. Recarga la misma pestaña: debe restaurar la sesión mediante `/auth/me`.
+6. Usa **Cerrar sesión**: vuelve al login y el botón Atrás no debe abrir Home.
+7. Recarga: debe permanecer en login.
+
+En pgAdmin abre Query Tool en `encuentrau_db` y consulta únicamente columnas
+públicas, reemplazando el email por el que usaste desde Flutter:
+
+```sql
+SELECT id, full_name, email, student_code, role, is_active, created_at
+FROM public.users
+WHERE email = 'correo-que-usaste@universidad.edu.co';
+```
+
+Debe aparecer el usuario con rol `student` y `is_active = true`. No consultes ni
+compartas el hash de contraseña. Si ya existe el usuario de una prueba anterior,
+el registro devuelve 409; puedes iniciar sesión con su contraseña existente.
+
+### Pruebas automatizadas
+
+```powershell
+dart format .
+dart format --output=none --set-exit-if-changed .
+flutter analyze
+flutter test
+git diff --check
+```
+
+Las pruebas usan `MockClient`, repositorios de prueba y `TokenStorage` en memoria:
+no requieren FastAPI, PostgreSQL ni el plugin real. Cubren contratos JSON,
+peticiones, errores, persistencia del token, restauración, estado del controlador,
+formularios, bloqueo de envíos, navegación y logout, además de conservar las
+pruebas existentes del motor local de coincidencias.
 
 ## Preparar la exposición en otro computador
 

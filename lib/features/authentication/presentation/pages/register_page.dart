@@ -42,6 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _submit() async {
+    if (widget.controller.isBusy) return;
     FocusScope.of(context).unfocus();
     widget.controller.clearError();
 
@@ -75,14 +76,9 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _goToLogin() {
-    final navigator = Navigator.of(context);
-
-    if (navigator.canPop()) {
-      navigator.pop();
-      return;
-    }
-
-    navigator.pushReplacementNamed(AppRoutes.login);
+    widget.controller.clearError();
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
   }
 
   String? _validateRequired(String? value) {
@@ -103,6 +99,9 @@ class _RegisterPageState extends State<RegisterPage> {
     if (value!.trim().length < AppValidation.minimumFullNameLength) {
       return AppStrings.invalidFullName;
     }
+    if (value.trim().length > AppValidation.maximumFullNameLength) {
+      return AppStrings.fieldTooLong;
+    }
 
     return null;
   }
@@ -117,6 +116,9 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!AppValidation.isValidEmail(value!)) {
       return AppStrings.invalidEmail;
     }
+    if (value.trim().length > AppValidation.maximumEmailLength) {
+      return AppStrings.fieldTooLong;
+    }
 
     return null;
   }
@@ -128,7 +130,8 @@ class _RegisterPageState extends State<RegisterPage> {
       return requiredError;
     }
 
-    if (value!.trim().length < AppValidation.minimumStudentCodeLength) {
+    if (!AppValidation.isValidStudentCode(value!) ||
+        value.trim().length > AppValidation.maximumStudentCodeLength) {
       return AppStrings.invalidStudentCode;
     }
 
@@ -136,25 +139,20 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   String? _validatePassword(String? value) {
-    final requiredError = _validateRequired(value);
+    if (value == null || value.isEmpty) return AppStrings.requiredField;
 
-    if (requiredError != null) {
-      return requiredError;
-    }
-
-    if (value!.length < AppValidation.minimumPasswordLength) {
+    if (value.length < AppValidation.minimumPasswordLength) {
       return AppStrings.passwordMinLength;
+    }
+    if (value.length > AppValidation.maximumPasswordLength) {
+      return AppStrings.fieldTooLong;
     }
 
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
-    final requiredError = _validateRequired(value);
-
-    if (requiredError != null) {
-      return requiredError;
-    }
+    if (value == null || value.isEmpty) return AppStrings.requiredField;
 
     if (value != _passwordController.text) {
       return AppStrings.passwordsDoNotMatch;
@@ -257,6 +255,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             labelText: AppStrings.passwordLabel,
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
+                              tooltip: _obscurePassword
+                                  ? AppStrings.showPassword
+                                  : AppStrings.hidePassword,
                               onPressed: () {
                                 setState(() {
                                   _obscurePassword = !_obscurePassword;
@@ -282,6 +283,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             labelText: AppStrings.confirmPasswordLabel,
                             prefixIcon: const Icon(Icons.lock_reset_outlined),
                             suffixIcon: IconButton(
+                              tooltip: _obscureConfirmPassword
+                                  ? AppStrings.showPassword
+                                  : AppStrings.hidePassword,
                               onPressed: () {
                                 setState(() {
                                   _obscureConfirmPassword =
@@ -347,8 +351,9 @@ class _RegisterPageState extends State<RegisterPage> {
                               : const Text(AppStrings.registerButton),
                         ),
                         const SizedBox(height: AppSizes.spacingMedium),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             const Text(AppStrings.alreadyHaveAccount),
                             TextButton(

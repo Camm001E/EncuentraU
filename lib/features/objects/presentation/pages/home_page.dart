@@ -1,15 +1,27 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/routes.dart';
+import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../authentication/presentation/controllers/auth_controller.dart';
 import '../controllers/object_controller.dart';
 import '../widgets/object_report_card.dart';
 import '../widgets/report_action_card.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({required this.controller, super.key});
+  const HomePage(
+      {required this.controller, required this.authController, super.key});
 
   final ObjectController controller;
+  final AuthController authController;
+
+  Future<void> _logout(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    await authController.logout();
+    if (!navigator.mounted) return;
+    navigator.pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +32,27 @@ class HomePage extends StatelessWidget {
           children: [
             Icon(Icons.travel_explore_rounded, color: AppTheme.primary),
             SizedBox(width: 8),
-            Text('EncuentraU'),
+            Flexible(
+              child: Text(AppStrings.appName, overflow: TextOverflow.ellipsis),
+            ),
           ],
         ),
         actions: [
+          AnimatedBuilder(
+            animation: authController,
+            builder: (context, _) => TextButton.icon(
+              onPressed: authController.isBusy ? null : () => _logout(context),
+              icon: authController.isBusy
+                  ? const SizedBox(
+                      width: AppSizes.spacingLarge,
+                      height: AppSizes.spacingLarge,
+                      child: CircularProgressIndicator())
+                  : const Icon(Icons.logout_rounded),
+              label: Text(authController.isBusy
+                  ? AppStrings.signingOut
+                  : AppStrings.signOut),
+            ),
+          ),
           IconButton(
             onPressed: () => showAboutDialog(
               context: context,
