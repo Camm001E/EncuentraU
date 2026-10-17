@@ -1,6 +1,6 @@
 # EncuentraU
 
-Prototipo frontend en Flutter para registrar objetos perdidos y encontrados en una universidad. El avance funciona completamente con datos locales simulados y está organizado con Clean Architecture.
+Prototipo frontend en Flutter para registrar objetos perdidos y encontrados en una universidad. Está organizado con Clean Architecture y combina datos locales simulados con un cliente HTTP de reconocimiento visual.
 
 ## Estado del avance
 
@@ -9,14 +9,14 @@ Actualmente incluye:
 - Inicio de sesión simulado.
 - Pantalla principal adaptable a móvil y escritorio.
 - Registro de objetos perdidos y encontrados.
-- Selección simulada de fotografía.
+- Selección de fotografía y análisis visual mediante una API externa.
 - Listado y filtrado de reportes.
 - Datos iniciales de demostración.
 - Cálculo local de coincidencias.
 - Resultado demostrativo de 92% para el caso de los audífonos.
 - Solicitud simulada de validación de propiedad.
 
-Esta versión todavía no utiliza backend, PostgreSQL ni una API de inteligencia artificial. Los datos nuevos permanecen en memoria y se eliminan al reiniciar la aplicación.
+Los reportes nuevos permanecen en memoria y se eliminan al reiniciar la aplicación. El reconocimiento visual utiliza el backend FastAPI independiente; la persistencia con PostgreSQL todavía está pendiente.
 
 ## Arquitectura
 
@@ -95,9 +95,10 @@ El porcentaje se calcula con reglas locales:
 
 En la versión final este cálculo se complementará con análisis visual, embeddings, PostgreSQL con `pgvector` y validación administrativa.
 
-## Fase 1: prueba real de reconocimiento visual
+## Backend independiente y reconocimiento visual
 
-El repositorio incluye ahora una prueba técnica independiente en `backend/` con:
+El backend oficial se mantiene en el repositorio separado
+[EncuentraU_Backend](https://github.com/Camm001E/EncuentraU_Backend). Incluye:
 
 - FastAPI.
 - Integración preparada para Gemini mediante `google-genai`.
@@ -106,6 +107,19 @@ El repositorio incluye ahora una prueba técnica independiente en `backend/` con
 - Protección para no copiar información personal visible en documentos.
 - Validación de formato y tamaño de la fotografía.
 - Pruebas automáticas sin consumo de la API.
+- Motor de coincidencias con identidad, contexto, cobertura y evidencias explicables.
 
 La guía para crear el entorno, configurar `GEMINI_API_KEY` y probar una fotografía
-está en [`backend/README.md`](backend/README.md).
+está en el [README del backend oficial](https://github.com/Camm001E/EncuentraU_Backend/blob/main/README.md).
+
+El cliente Flutter configura la dirección del servidor mediante `API_BASE_URL`
+en `lib/core/constants/api_constants.dart`. Su valor predeterminado es
+`http://127.0.0.1:8000` y el análisis de fotografías utiliza
+`POST /api/v1/ai/analyze` con los campos `image` y `description`.
+La implementación HTTP está en
+`lib/features/objects/data/datasources/object_analysis_remote_datasource.dart`.
+
+El cálculo local de coincidencias descrito arriba sigue siendo una demostración
+del frontend. El motor jerárquico oficial reside en FastAPI y expone
+`POST /api/v1/matches/evaluate`; conectar ese endpoint al frontend es un trabajo
+posterior.
