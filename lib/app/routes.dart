@@ -7,4 +7,7 @@ abstract final class AppRoutes {
   static const String registerFound = '/objects/register-found';
   static const String objects = '/objects';
   static const String matches = '/matches';
+  static const String reportDetail = '/objects/detail';
+  static const String editReport = '/objects/edit';
+  static const String matchDetail = '/matches/detail';
 }

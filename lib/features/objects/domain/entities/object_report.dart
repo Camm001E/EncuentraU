@@ -2,53 +2,94 @@ import 'object_image_analysis.dart';
 
 enum ReportType { lost, found }
 
-enum ReportStatus { active, matched, delivered }
+enum ReportStatus { active, resolved, cancelled }
 
-extension ReportTypeLabel on ReportType {
-  String get label => this == ReportType.lost ? 'Perdido' : 'Encontrado';
-}
-
-extension ReportStatusLabel on ReportStatus {
-  String get label {
-    switch (this) {
-      case ReportStatus.active:
-        return 'Activo';
-      case ReportStatus.matched:
-        return 'Con coincidencia';
-      case ReportStatus.delivered:
-        return 'Entregado';
-    }
-  }
+class StoredImageAnalysis {
+  const StoredImageAnalysis(
+      {required this.id,
+      required this.reportId,
+      required this.provider,
+      required this.model,
+      required this.extractedData,
+      required this.confidence,
+      required this.createdAt});
+  final String id, reportId, provider, model, confidence;
+  final Map<String, dynamic> extractedData;
+  final DateTime createdAt;
 }
 
 class ObjectReport {
-  const ObjectReport({
-    required this.id,
-    required this.type,
-    required this.category,
-    required this.color,
-    required this.brand,
-    required this.description,
-    required this.location,
-    required this.eventDate,
-    required this.privateFeature,
-    required this.status,
-    this.imageLabel,
-    this.imageAnalysis,
-  });
-
-  final String id;
-  final ReportType type;
-  final String category;
-  final String color;
-  final String brand;
-  final String description;
-  final String location;
-  final DateTime eventDate;
-  final String privateFeature;
+  const ObjectReport(
+      {required this.id,
+      required this.reportType,
+      required this.status,
+      required this.objectType,
+      required this.category,
+      required this.description,
+      required this.location,
+      required this.eventDate,
+      required this.createdAt,
+      required this.updatedAt,
+      this.primaryColor,
+      this.secondaryColors = const [],
+      this.brand,
+      this.shape,
+      this.privateFeature,
+      this.imageAnalysis});
+  final String id, objectType, category, description, location;
+  final ReportType reportType;
   final ReportStatus status;
-  final String? imageLabel;
+  final String? primaryColor, brand, shape, privateFeature;
+  final List<String> secondaryColors;
+  final DateTime eventDate, createdAt, updatedAt;
+  final StoredImageAnalysis? imageAnalysis;
+}
 
-  // Resultado generado por Gemini al analizar la fotografía.
+/// Creation carries no ID, owner, status, audit dates or photo/file data.
+class ObjectReportDraft {
+  const ObjectReportDraft(
+      {required this.reportType,
+      required this.objectType,
+      required this.category,
+      required this.description,
+      required this.location,
+      required this.eventDate,
+      this.primaryColor,
+      this.secondaryColors = const [],
+      this.brand,
+      this.shape,
+      this.privateFeature,
+      this.imageAnalysis});
+  final ReportType reportType;
+  final String objectType, category, description, location;
+  final DateTime eventDate;
+  final String? primaryColor, brand, shape, privateFeature;
+  final List<String> secondaryColors;
   final ObjectImageAnalysis? imageAnalysis;
+}
+
+/// Present wrapper clears a nullable field with null; absent wrapper omits it.
+class FieldUpdate<T> {
+  const FieldUpdate(this.value);
+  final T? value;
+}
+
+class ObjectReportUpdate {
+  const ObjectReportUpdate(
+      {this.objectType,
+      this.category,
+      this.primaryColor,
+      this.secondaryColors,
+      this.brand,
+      this.shape,
+      this.description,
+      this.location,
+      this.eventDate,
+      this.privateFeature,
+      this.status});
+  final String? objectType, category, description, location;
+  final FieldUpdate<String>? primaryColor, brand, shape, privateFeature;
+  final List<String>? secondaryColors;
+  final DateTime? eventDate;
+  final ReportStatus? status;
 }
