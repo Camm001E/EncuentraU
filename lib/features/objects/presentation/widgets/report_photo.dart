@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../domain/entities/report_image.dart';
@@ -12,10 +11,14 @@ class ReportPhoto extends StatefulWidget {
       {required this.image,
       this.height = AppSizes.imagePreviewHeight,
       this.thumbnail = false,
+      this.fit = BoxFit.cover,
+      this.label,
       super.key});
   final ReportImageReference? image;
   final double height;
   final bool thumbnail;
+  final BoxFit fit;
+  final String? label;
   @override
   State<ReportPhoto> createState() => _ReportPhotoState();
 }
@@ -96,18 +99,20 @@ class _ReportPhotoState extends State<ReportPhoto> {
 
   @override
   Widget build(BuildContext context) => Semantics(
-      label: AppStrings.reportPhoto,
+      label: widget.label == null
+          ? AppStrings.reportPhoto
+          : AppStrings.photoSemantics(widget.label!),
       child: ClipRRect(
           borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
           child: SizedBox(
               height: widget.height,
               width: widget.thumbnail ? widget.height : double.infinity,
               child: ColoredBox(
-                  color: AppColors.foundBackground,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   child: _provider != null
                       ? Image(
                           image: _provider!,
-                          fit: BoxFit.cover,
+                          fit: widget.fit,
                           errorBuilder: (_, __, ___) =>
                               _placeholder(error: true))
                       : _loading
@@ -116,10 +121,11 @@ class _ReportPhotoState extends State<ReportPhoto> {
   Widget _placeholder({required bool error}) => Center(
       child: widget.thumbnail
           ? Icon(error ? Icons.broken_image_outlined : Icons.photo_outlined,
-              color: AppColors.primary)
+              color: Theme.of(context).colorScheme.primary)
           : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const Icon(Icons.photo_outlined,
-                  color: AppColors.primary, size: AppSizes.iconLarge),
+              Icon(Icons.photo_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                  size: AppSizes.iconLarge),
               Text(
                   error
                       ? AppStrings.photoUnavailable

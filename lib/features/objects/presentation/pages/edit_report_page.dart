@@ -11,6 +11,7 @@ import '../../domain/entities/object_report.dart';
 import '../constants/report_labels.dart';
 import '../controllers/object_controller.dart';
 import '../widgets/report_form_fields.dart';
+import '../../../../core/presentation/widgets/design_system.dart';
 
 class EditReportPage extends StatefulWidget {
   const EditReportPage(
@@ -69,7 +70,10 @@ class _EditReportPageState extends State<EditReportPage> {
             final controller = widget.controller;
             if (controller.detailStatus == LoadStatus.loading ||
                 controller.detailStatus == LoadStatus.initial)
-              return const Center(child: CircularProgressIndicator());
+              return const ContentWidth(
+                  child: Padding(
+                      padding: EdgeInsets.all(AppSizes.spacingLarge),
+                      child: LoadingSkeleton()));
             if (controller.detailStatus == LoadStatus.error)
               return LoadFeedback(
                   message:
@@ -99,6 +103,9 @@ class _EditReportPageState extends State<EditReportPage> {
                                 children: [
                                   if (report.status != ReportStatus.active)
                                     const Text(AppStrings.reportReadOnly),
+                                  const SectionHeading(
+                                      title: AppStrings.photoStep,
+                                      subtitle: AppStrings.photoStepHelp),
                                   ReportPhotoEditor(
                                       pickImage: widget.pickImage,
                                       reportId: report.id,
