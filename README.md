@@ -178,3 +178,53 @@ Reproduce un análisis guardado a través del puerto de análisis para no gastar
 el resto de tráfico de autenticación, reportes, archivos y coincidencias utiliza FastAPI real.
 No hay fotografías ni credenciales de la prueba en el repositorio. Capturas y resultados locales van en
 `build/`. La prueba no se incluye en la suite de unidad/widgets ni depende de cuentas existentes.
+
+## Identidad pastel y experiencia de coincidencias
+
+El sistema visual sigue una sola cadena: `AppColors` → `AppTheme` y
+`AppSemanticColors` → componentes → pantallas. Salvia, durazno y lavanda se usan
+en superficies; textos y acciones utilizan tonos profundos. Los pigmentos se
+definen una sola vez en `app_colors.dart`. Gradientes y sombras combinan esa
+paleta; las páginas consumen `ColorScheme` y los estados semánticos del tema.
+Una prueba arquitectónica evita colores hexadecimales o colores Material
+dispersos y verifica contraste de textos, estados y límites de campos.
+
+`AppShell` conserva las rutas nominales y presenta Inicio, Mis reportes,
+Coincidencias y Perfil con NavigationBar o NavigationRail. Perfil solo muestra
+al usuario autenticado. Cerrar o vencer sesión limpia reportes, coincidencias,
+análisis, resumen y caché privada, y elimina el historial autenticado.
+
+El módulo dashboard mantiene entidades, puerto, caso de uso, adaptador y
+controlador separados. Sus cifras proceden de `total` en consultas paginadas
+autenticadas de una fila: reportes activos, perdidos, encontrados y coincidencias.
+No se cuentan filas incompletas de una página ni se inventan estadísticas.
+Las escrituras y la generación de coincidencias actualizan ese resumen.
+
+El registro presenta fotografía, análisis, atributos editables, lugar y fecha,
+característica privada y revisión. Se conservan las validaciones y el orden
+crear → subir → generar, incluido el reintento de foto sin duplicar el reporte.
+
+La lista de coincidencias es breve. El detalle separa las dos fotos autenticadas,
+el anillo de compatibilidad estimada, cobertura, identidad y contexto, nueve
+factores y observaciones. Todos los valores y explicaciones proceden de FastAPI;
+las divisiones usadas por los pintores solo representan barras y arcos.
+La propiedad siempre requiere validación antes de entregar el objeto.
+
+El escaneo y las barras tienen una entrada finita, sin bucles decorativos.
+Respetan la reducción de movimiento mediante
+[MediaQuery](https://api.flutter.dev/flutter/widgets/MediaQueryData/disableAnimations.html).
+El anillo conserva su estado al cambiar de orientación. Los componentes soportan
+texto ampliado; botones, iconos y navegación mantienen objetivos táctiles accesibles.
+No se agregaron dependencias de ejecución, fotografías de muestra ni fuentes externas.
+
+Para recorrer y capturar la experiencia Android con la API real:
+
+```powershell
+python -X utf8 tool/run_images_e2e.py --ui --image-a "<foto-A.png>" --image-b "<foto-B.png>" --uploads-dir "<backend>/var/uploads" --adb "<Android-SDK>/platform-tools/adb.exe"
+```
+
+Las capturas y resultados quedan exclusivamente en `build/ui-redesign/`.
+El recorrido registra una cuenta desde la interfaz, reutiliza un análisis previo,
+crea reportes y fotos reales, compara, recrea la app, edita y cierra sesión.
+Selecciona explícitamente una fecha pasada para no depender de la zona horaria
+del emulador. No llama a Gemini ni guarda contraseñas o JWT en archivos versionados.

@@ -1,4 +1,36 @@
 abstract final class AppSizes {
+  static const double touchTarget = 48;
+  static const double spacingTiny = 4;
+  static const double radiusSmall = 8;
+  static const double contentMaxWidth = 1160;
+  static const double navigationBreakpoint = 760;
+  static const double extendedRailBreakpoint = 1200;
+  static const double navigationHeight = 80;
+  static const double minimumLabeledNavigationWidth = 360;
+  static const double navigationRailWidth = 92;
+  static const double railExtendedWidth = 220;
+  static const double authArtworkBreakpoint = 1000;
+  static const double authMaxWidth = 1120;
+  static const double brandMarkSize = 52;
+  static const double brandMarkLarge = 80;
+  static const double ringSize = 184;
+  static const double ringStroke = 12;
+  static const double comparisonPhotoHeight = 250;
+  static const double comparisonConnectorSize = 48;
+  static const double scanStroke = 2;
+  static const double scanOpacity = 0.65;
+  static const double reportCardPhoto = 100;
+  static const double skeletonLine = 16;
+  static const double skeletonHeight = 120;
+  static const double metricWidth = 136;
+  static const double textScaleNavigationCutoff = 1.5;
+  static const double headingSize = 32;
+  static const double scoreSize = 44;
+  static const double eyebrowSize = 12;
+  static const double brandWordSize = 28;
+  static const double titleLetterSpacing = -0.8;
+  static const double eyebrowLetterSpacing = 1.6;
+  static const int homeRecentReports = 3;
   // Espaciados
   static const double spacingSmall = 8;
   static const double spacingRegular = 12;

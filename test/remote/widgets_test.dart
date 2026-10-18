@@ -1,3 +1,4 @@
+import '../premium/support.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:encuentra_u/app/app.dart';
@@ -30,7 +31,9 @@ Future<DependencyContainer> start(
     return handler(request);
   });
   final deps = DependencyContainer.create(
-      client: client, tokenStorage: MemoryTokenStorage(testToken));
+      dashboardRepository: TestDashboardRepository(),
+      client: client,
+      tokenStorage: MemoryTokenStorage(testToken));
   addTearDown(client.close);
   addTearDown(deps.dispose);
   await tester.pumpWidget(EncuentraUApp(dependencies: deps));
@@ -57,7 +60,10 @@ Future<void> fillReport(WidgetTester tester) async {
     await tester.ensureVisible(field);
     await tester.enterText(field, entry.value);
   }
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pumpAndSettle();
   await tester.ensureVisible(find.text(AppStrings.registerReport));
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -73,7 +79,9 @@ void main() {
       return jsonResponse(pageJson([reportJson()]));
     });
     final deps = DependencyContainer.create(
-        client: client, tokenStorage: MemoryTokenStorage(testToken));
+        dashboardRepository: TestDashboardRepository(),
+        client: client,
+        tokenStorage: MemoryTokenStorage(testToken));
     addTearDown(client.close);
     addTearDown(deps.dispose);
     await tester.pumpWidget(EncuentraUApp(dependencies: deps));
@@ -83,6 +91,8 @@ void main() {
     pending.complete(jsonResponse(userJson));
     await tester.pumpAndSettle();
     expect(reportCalls, 1);
+    await tester.scrollUntilVisible(find.text('audífonos de diadema'), 300,
+        scrollable: find.byType(Scrollable).last);
     expect(find.text('audífonos de diadema'), findsOneWidget);
     expect(find.byType(HomePage), findsOneWidget);
   });
@@ -173,7 +183,10 @@ void main() {
     expect(listed, 1);
     expect(find.byType(MatchesPage), findsOneWidget);
     expect(find.text('91%'), findsOneWidget);
-    expect(find.text(AppStrings.identity + ': 88.27%'), findsOneWidget);
+    expect(
+        find.text(
+            '${AppStrings.evidenceCoverage}: ${fixture['evidence_coverage']}%'),
+        findsOneWidget);
   });
   testWidgets('coincidencias muestra error, reintenta y admite resultado vacío',
       (tester) async {
@@ -308,7 +321,7 @@ void main() {
     expect(find.text('Descripción editada desde Flutter'), findsOneWidget);
   });
 
-  testWidgets('tarjeta móvil muestra métricas remotas y expande nueve factores',
+  testWidgets('detalle móvil muestra métricas remotas y expande nueve factores',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -316,7 +329,8 @@ void main() {
         home: Scaffold(
             body: SingleChildScrollView(
                 child: MatchCard(
-                    match: ObjectMatchModel.fromJson(matchJson()))))));
+                    match: ObjectMatchModel.fromJson(matchJson()),
+                    detail: true)))));
     expect(find.text('91%'), findsOneWidget);
     expect(find.text(AppStrings.highMatch), findsOneWidget);
     final expand = find.text(AppStrings.evidenceFactors);

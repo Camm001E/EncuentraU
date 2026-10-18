@@ -5,6 +5,7 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/object_image_analysis.dart';
 import '../../domain/entities/object_report.dart';
+import '../../../../core/presentation/widgets/design_system.dart';
 
 class ReportFormData {
   ReportFormData({ObjectReport? report}) {
@@ -91,9 +92,16 @@ class ReportFormData {
 }
 
 class ReportFormFields extends StatefulWidget {
-  const ReportFormFields({required this.data, this.enabled = true, super.key});
+  const ReportFormFields(
+      {required this.data,
+      this.enabled = true,
+      this.includeDescription = true,
+      this.firstStep = 1,
+      super.key});
   final ReportFormData data;
   final bool enabled;
+  final bool includeDescription;
+  final int firstStep;
   @override
   State<ReportFormFields> createState() => _ReportFormFieldsState();
 }
@@ -139,15 +147,19 @@ class _ReportFormFieldsState extends State<ReportFormFields> {
   @override
   Widget build(BuildContext context) =>
       Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        SectionHeading(
+            title:
+                AppStrings.stepLabel(widget.firstStep, AppStrings.objectStep)),
         field('object-type', widget.data.objectType, AppStrings.objectTypeLabel,
             ApiConstants.objectTypeMaxLength,
             mandatory: true),
         field('category', widget.data.category, AppStrings.categoryLabel,
             ApiConstants.categoryMaxLength,
             mandatory: true, hint: AppStrings.categoryHelp),
-        field('description', widget.data.description,
-            AppStrings.descriptionLabel, ApiConstants.descriptionMaxLength,
-            mandatory: true, multiline: true),
+        if (widget.includeDescription)
+          field('description', widget.data.description,
+              AppStrings.descriptionLabel, ApiConstants.descriptionMaxLength,
+              mandatory: true, multiline: true),
         field('primary-color', widget.data.primaryColor,
             AppStrings.primaryColorLabel, ApiConstants.colorMaxLength),
         field(
@@ -160,6 +172,10 @@ class _ReportFormFieldsState extends State<ReportFormFields> {
             ApiConstants.brandMaxLength),
         field('shape', widget.data.shape, AppStrings.shapeLabel,
             ApiConstants.shapeMaxLength),
+        const SizedBox(height: AppSizes.spacingLarge),
+        SectionHeading(
+            title: AppStrings.stepLabel(
+                widget.firstStep + 1, AppStrings.locationStep)),
         field('location', widget.data.location, AppStrings.locationLabel,
             ApiConstants.locationMaxLength,
             mandatory: true),
@@ -169,6 +185,13 @@ class _ReportFormFieldsState extends State<ReportFormFields> {
             label: Text(
                 '${AppStrings.eventDateLabel}: ${formatDate(widget.data.eventDate)}')),
         const SizedBox(height: AppSizes.spacingRegular),
+        const SizedBox(height: AppSizes.spacingLarge),
+        SectionHeading(
+            title: AppStrings.stepLabel(
+                widget.firstStep + 2, AppStrings.privateStep)),
+        const InformationPanel(
+            icon: Icons.lock_outline, child: Text(AppStrings.privateHelp)),
+        const SizedBox(height: AppSizes.spacingMedium),
         field(
             'private-feature',
             widget.data.privateFeature,
@@ -176,4 +199,28 @@ class _ReportFormFieldsState extends State<ReportFormFields> {
             ApiConstants.privateFeatureMaxLength,
             multiline: true),
       ]);
+}
+
+class ReportDescriptionField extends StatelessWidget {
+  const ReportDescriptionField(
+      {required this.data, required this.enabled, super.key});
+  final ReportFormData data;
+  final bool enabled;
+  @override
+  Widget build(BuildContext context) => TextFormField(
+      key: const ValueKey('report-description'),
+      controller: data.description,
+      enabled: enabled,
+      minLines: 2,
+      maxLines: 4,
+      decoration: const InputDecoration(
+          labelText: AppStrings.descriptionLabel,
+          hintText: AppStrings.descriptionHint),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty)
+          return AppStrings.requiredField;
+        if (value.trim().length > ApiConstants.descriptionMaxLength)
+          return AppStrings.fieldTooLong;
+        return null;
+      });
 }

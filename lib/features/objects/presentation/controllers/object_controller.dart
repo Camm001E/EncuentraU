@@ -14,7 +14,8 @@ class ObjectController extends PagedController<ObjectReport> {
       required GetMyReport getMyReport,
       required RegisterObject registerObject,
       required UpdateObjectReport updateReport,
-      required CancelObjectReport cancelReport})
+      required CancelObjectReport cancelReport,
+      this.onReportsChanged})
       : _list = getMyReports,
         _get = getMyReport,
         _create = registerObject,
@@ -25,6 +26,7 @@ class ObjectController extends PagedController<ObjectReport> {
   final RegisterObject _create;
   final UpdateObjectReport _update;
   final CancelObjectReport _cancel;
+  final void Function()? onReportsChanged;
   ReportType? reportTypeFilter;
   ReportStatus? statusFilter;
   ObjectReport? detail;
@@ -82,6 +84,7 @@ class ObjectController extends PagedController<ObjectReport> {
       detail = report;
       detailStatus = LoadStatus.ready;
       await refresh();
+      if (isCurrent(epoch)) onReportsChanged?.call();
       return isCurrent(epoch) ? report : null;
     } catch (error) {
       if (isCurrent(epoch)) actionMessage = apiMessage(error);
@@ -106,6 +109,7 @@ class ObjectController extends PagedController<ObjectReport> {
       detail = report;
       detailStatus = LoadStatus.ready;
       await refresh();
+      if (isCurrent(epoch)) onReportsChanged?.call();
       return isCurrent(epoch);
     } catch (error) {
       if (isCurrent(epoch)) actionMessage = apiMessage(error);
@@ -131,6 +135,7 @@ class ObjectController extends PagedController<ObjectReport> {
       detailStatus = LoadStatus.loading;
       notify();
       await Future.wait([refresh(), loadDetail(id)]);
+      if (isCurrent(epoch)) onReportsChanged?.call();
       return isCurrent(epoch);
     } catch (error) {
       if (isCurrent(epoch)) actionMessage = apiMessage(error);

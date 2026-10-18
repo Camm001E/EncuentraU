@@ -6,15 +6,13 @@ import '../features/authentication/presentation/pages/login_page.dart';
 import '../features/authentication/presentation/pages/register_page.dart';
 import '../features/authentication/presentation/pages/session_page.dart';
 import '../features/objects/domain/entities/object_report.dart';
-import '../features/objects/presentation/pages/home_page.dart';
-import '../features/objects/presentation/pages/objects_page.dart';
 import '../features/objects/presentation/pages/register_object_page.dart';
 import '../features/objects/presentation/pages/report_detail_page.dart';
 import '../features/objects/presentation/pages/edit_report_page.dart';
-import '../features/matching/presentation/pages/matches_page.dart';
 import '../features/matching/presentation/pages/match_detail_page.dart';
 import 'dependency_container.dart';
 import 'routes.dart';
+import 'app_shell.dart';
 
 class EncuentraUApp extends StatefulWidget {
   const EncuentraUApp({required this.dependencies, super.key});
@@ -56,6 +54,12 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
       builder: (_, __) => dependencies.authController.isAuthenticated
           ? builder()
           : LoginPage(controller: dependencies.authController));
+  Widget shell(int index) => AppShell(
+      objects: dependencies.objectController,
+      auth: dependencies.authController,
+      matches: dependencies.matchController,
+      dashboard: dependencies.dashboardController,
+      initialIndex: index);
   Widget withId(BuildContext context, Widget Function(String) builder) {
     final id = ModalRoute.of(context)?.settings.arguments;
     return id is String && id.isNotEmpty
@@ -79,11 +83,9 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
                 LoginPage(controller: dependencies.authController),
             AppRoutes.register: (_) =>
                 RegisterPage(controller: dependencies.authController),
-            AppRoutes.home: (_) => protected(() => HomePage(
-                controller: dependencies.objectController,
-                authController: dependencies.authController)),
-            AppRoutes.objects: (_) => protected(
-                () => ObjectsPage(controller: dependencies.objectController)),
+            AppRoutes.home: (_) => protected(() => shell(0)),
+            AppRoutes.objects: (_) => protected(() => shell(1)),
+            AppRoutes.profile: (_) => protected(() => shell(3)),
             AppRoutes.registerLost: (_) => protected(() => RegisterObjectPage(
                 type: ReportType.lost,
                 controller: dependencies.objectController,
@@ -104,8 +106,7 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
                 context,
                 (id) => EditReportPage(
                     reportId: id, controller: dependencies.objectController))),
-            AppRoutes.matches: (_) => protected(
-                () => MatchesPage(controller: dependencies.matchController)),
+            AppRoutes.matches: (_) => protected(() => shell(2)),
             AppRoutes.matchDetail: (context) => protected(() => withId(
                 context,
                 (id) => MatchDetailPage(
