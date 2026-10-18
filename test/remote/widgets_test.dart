@@ -26,6 +26,8 @@ Future<DependencyContainer> start(
   await tester.binding.setSurfaceSize(size);
   addTearDown(() => tester.binding.setSurfaceSize(null));
   final client = MockClient((request) async {
+    if (request.url.path == ApiConstants.myConversationsPath)
+      return jsonResponse(pageJson([]));
     if (request.url.path == ApiConstants.authMePath)
       return jsonResponse(userJson);
     return handler(request);
@@ -73,6 +75,8 @@ void main() {
     final pending = Completer<http.Response>();
     var reportCalls = 0;
     final client = MockClient((request) async {
+      if (request.url.path == ApiConstants.myConversationsPath)
+        return jsonResponse(pageJson([]));
       if (request.url.path == ApiConstants.authMePath) return pending.future;
       reportCalls++;
       expect(request.url.path, ApiConstants.myReportsPath);

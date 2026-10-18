@@ -1,4 +1,6 @@
 enum ApiFailure {
+  permissionDenied,
+  workflowConflict,
   invalidData,
   unauthorized,
   forbidden,

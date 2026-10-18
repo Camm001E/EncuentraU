@@ -104,6 +104,10 @@ void main() {
     final requests = <String>[];
     final client = MockClient((request) async {
       requests.add(request.url.path);
+      if (request.url.path == ApiConstants.myConversationsPath) {
+        expect(request.headers['authorization'], 'Bearer $testToken');
+        return emptyReports();
+      }
       if (request.url.path == ApiConstants.myReportsPath) {
         expect(request.headers['authorization'], 'Bearer $testToken');
         return emptyReports();
@@ -131,7 +135,8 @@ void main() {
     expect(requests, [
       ApiConstants.authLoginPath,
       ApiConstants.authMePath,
-      ApiConstants.myReportsPath
+      ApiConstants.myReportsPath,
+      ApiConstants.myConversationsPath
     ]);
     expect(storage.token, testToken);
     expect(find.byType(HomePage), findsOneWidget);
