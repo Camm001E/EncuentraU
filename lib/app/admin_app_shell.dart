@@ -7,17 +7,21 @@ import '../features/authentication/presentation/pages/profile_page.dart';
 import '../features/claims/presentation/controllers/admin_claims_controller.dart';
 import '../features/claims/presentation/pages/admin_claims_page.dart';
 import '../features/claims/presentation/pages/admin_dashboard_page.dart';
+import '../features/deliveries/presentation/controllers/delivery_controller.dart';
+import '../features/deliveries/presentation/pages/deliveries_page.dart';
 
 class AdminAppShell extends StatefulWidget {
   const AdminAppShell(
       {required this.auth,
       required this.claims,
       required this.summary,
+      this.deliveries,
       this.initialIndex = 0,
       super.key});
   final AuthController auth;
   final AdminClaimsController claims;
   final AdminSummaryController summary;
+  final DeliveryController? deliveries;
   final int initialIndex;
   @override
   State<AdminAppShell> createState() => _AdminAppShellState();
@@ -28,11 +32,13 @@ class _AdminAppShellState extends State<AdminAppShell> {
   static const labels = [
     AppStrings.adminHome,
     AppStrings.reviewQueue,
+    AppStrings.deliveries,
     AppStrings.navProfile
   ];
   static const icons = [
     Icons.dashboard_outlined,
     Icons.fact_check_outlined,
+    Icons.handshake_outlined,
     Icons.person_outline_rounded
   ];
   void select(int index) {
@@ -47,6 +53,9 @@ class _AdminAppShellState extends State<AdminAppShell> {
               select(1);
             }),
         1 => AdminClaimsPage(controller: widget.claims),
+        2 => widget.deliveries == null
+            ? const SizedBox.shrink()
+            : DeliveriesPage(controller: widget.deliveries!),
         _ => ProfilePage(controller: widget.auth)
       };
   @override

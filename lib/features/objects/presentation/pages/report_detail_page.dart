@@ -97,6 +97,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             if (report == null || report.id != widget.reportId)
               return const LoadFeedback(message: AppStrings.apiNotFound);
             final active = report.status == ReportStatus.active;
+            final editable = active && !report.evidenceLocked;
             final busy = controller.isCancelling ||
                 controller.isUpdating ||
                 widget.matchController.isGenerating;
@@ -133,6 +134,14 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                                     top: AppSizes.spacingMedium),
                                 child: InformationPanel(
                                     child: Text(AppStrings.reportReadOnly))),
+                          if (report.status == ReportStatus.resolved)
+                            const InformationPanel(
+                                child:
+                                    Text(AppStrings.reportResolvedByDelivery)),
+                          if (active && report.evidenceLocked)
+                            const InformationPanel(
+                                icon: Icons.lock_outline,
+                                child: Text(AppStrings.evidenceProtected)),
                           PrimaryAction(
                               label: widget.matchController.isGenerating
                                   ? AppStrings.generatingMatches
@@ -144,14 +153,14 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                           SecondaryAction(
                               label: AppStrings.editReport,
                               icon: Icons.edit_outlined,
-                              onPressed: active && !busy
+                              onPressed: editable && !busy
                                   ? () => Navigator.pushNamed(
                                       context, AppRoutes.editReport,
                                       arguments: report.id)
                                   : null),
                           const SizedBox(height: AppSizes.spacingRegular),
                           OutlinedButton.icon(
-                              onPressed: active && !busy ? cancel : null,
+                              onPressed: editable && !busy ? cancel : null,
                               style: OutlinedButton.styleFrom(
                                   foregroundColor: AppSemanticColors.of(context)
                                       .error

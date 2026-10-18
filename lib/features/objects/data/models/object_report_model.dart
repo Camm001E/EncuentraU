@@ -86,6 +86,9 @@ abstract final class ObjectReportModel {
         reportType:
             JsonReader.enumeration(json['report_type'], ReportType.values),
         status: JsonReader.enumeration(json['status'], ReportStatus.values),
+        evidenceLocked: json['evidence_locked'] == null
+            ? false
+            : JsonReader.boolean(json['evidence_locked']),
         objectType: JsonReader.string(json['object_type']),
         category: JsonReader.string(json['category']),
         primaryColor: JsonReader.optionalString(json['primary_color']),
