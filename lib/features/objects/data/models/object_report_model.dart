@@ -1,3 +1,4 @@
+import 'report_image_model.dart';
 import '../../../../core/network/json_reader.dart';
 import '../../domain/entities/object_image_analysis.dart';
 import '../../domain/entities/object_report.dart';
@@ -96,6 +97,8 @@ abstract final class ObjectReportModel {
         eventDate: JsonReader.date(json['event_date']),
         privateFeature: JsonReader.optionalString(json['private_feature']),
         imageAnalysis: analysis,
+        image: ReportImageModel.forReport(
+            json['image'], JsonReader.string(json['id'])),
         createdAt: JsonReader.date(json['created_at']),
         updatedAt: JsonReader.date(json['updated_at']));
   }

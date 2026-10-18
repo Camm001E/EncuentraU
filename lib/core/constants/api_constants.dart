@@ -37,6 +37,12 @@ abstract final class ApiConstants {
       '$matchesPath/${Uri.encodeComponent(id)}';
   static String generateMatchesPath(String id) =>
       '${reportPath(id)}/matches/generate';
+  static String reportImagePath(String id) => '${reportPath(id)}/image';
+  static String reportImageContentPath(String id) =>
+      '${reportImagePath(id)}/content';
+  static const int reportImageMaxBytes = 8388608;
+  static const int imageCacheMaxBytes = 16777216;
+  static const int imageCacheMaxEntries = 32;
   static Uri uri(String path, [Map<String, String>? query]) =>
       Uri.parse('$baseUrl$path').replace(queryParameters: query);
   static const String limitParameter = 'limit';

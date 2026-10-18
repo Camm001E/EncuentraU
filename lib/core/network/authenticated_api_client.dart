@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http_parser/http_parser.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -12,12 +14,14 @@ class AuthenticatedApiClient {
   const AuthenticatedApiClient(
       {required http.Client client,
       required SessionManager session,
-      this.timeout = AppDurations.apiRequestTimeout})
+      this.timeout = AppDurations.apiRequestTimeout,
+      this.transferTimeout = AppDurations.imageTransferTimeout})
       : _client = client,
         _session = session;
   final http.Client _client;
   final SessionManager _session;
   final Duration timeout;
+  final Duration transferTimeout;
 
   Future<Map<String, dynamic>?> request(
     String method,
@@ -26,6 +30,57 @@ class AuthenticatedApiClient {
     Map<String, String>? query,
     int expectedStatus = ApiConstants.ok,
   }) async {
+    final req = http.Request(method, ApiConstants.uri(path, query))
+      ..headers.addAll(ApiConstants.jsonHeaders);
+    if (body != null) req.body = jsonEncode(body);
+    final response = await _send(req, expectedStatus: expectedStatus);
+    if (expectedStatus == ApiConstants.noContent) return null;
+    return _json(response);
+  }
+
+  Map<String, dynamic> _json(http.Response response) {
+    try {
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decoded is! Map<String, dynamic>) throw const FormatException();
+      return decoded;
+    } on FormatException {
+      throw const ApiException(ApiFailure.invalidResponse);
+    }
+  }
+
+  Future<Map<String, dynamic>> uploadImage(
+      String path, List<int> bytes, String filename, String contentType) async {
+    if (bytes.length > ApiConstants.reportImageMaxBytes)
+      throw const ApiException(ApiFailure.imageTooLarge);
+    if (filename.isEmpty || RegExp(r'[\\/:\x00-\x1f]').hasMatch(filename))
+      throw const ApiException(ApiFailure.invalidData);
+    if (bytes.isEmpty ||
+        !ApiConstants.allowedImageMimeTypes.contains(contentType))
+      throw const ApiException(ApiFailure.unsupportedImage);
+    final request = http.MultipartRequest('PUT', ApiConstants.uri(path))
+      ..headers['Accept'] = ApiConstants.jsonHeaders['Accept']!
+      ..files.add(http.MultipartFile.fromBytes(ApiConstants.imageField, bytes,
+          filename: filename, contentType: MediaType.parse(contentType)));
+    return _json(await _send(request, requestTimeout: transferTimeout));
+  }
+
+  Future<Uint8List> downloadImage(String path) async {
+    final request = http.Request('GET', ApiConstants.uri(path))
+      ..headers['Accept'] = ApiConstants.allowedImageMimeTypes.join(', ');
+    final response = await _send(request,
+        requestTimeout: transferTimeout,
+        maxBytes: ApiConstants.reportImageMaxBytes);
+    final type = response.headers['content-type']?.split(';').first.trim();
+    if (!ApiConstants.allowedImageMimeTypes.contains(type) ||
+        response.bodyBytes.isEmpty)
+      throw const ApiException(ApiFailure.invalidResponse);
+    return response.bodyBytes;
+  }
+
+  Future<http.Response> _send(http.BaseRequest request,
+      {int expectedStatus = ApiConstants.ok,
+      Duration? requestTimeout,
+      int? maxBytes}) async {
     final generation = _session.generation;
     if (!_session.active) throw const ApiException(ApiFailure.unauthorized);
     String? token;
@@ -42,18 +97,23 @@ class AuthenticatedApiClient {
       await _session.invalidate(generation, ApiFailure.unauthorized);
       throw const ApiException(ApiFailure.unauthorized);
     }
+    request.headers[ApiConstants.authorizationHeader] =
+        '${ApiConstants.bearerPrefix}$token';
     try {
-      final req = http.Request(method, ApiConstants.uri(path, query))
-        ..headers.addAll({
-          ...ApiConstants.jsonHeaders,
-          ApiConstants.authorizationHeader: '${ApiConstants.bearerPrefix}$token'
-        });
-      if (body != null) req.body = jsonEncode(body);
       final response = await (() async {
-        final streamed = await _client.send(req);
-        return http.Response.fromStream(streamed);
+        final stream = await _client.send(request);
+        if (maxBytes == null || stream.statusCode != expectedStatus)
+          return http.Response.fromStream(stream);
+        final builder = BytesBuilder(copy: false);
+        await for (final chunk in stream.stream) {
+          if (builder.length + chunk.length > maxBytes)
+            throw const ApiException(ApiFailure.invalidResponse);
+          builder.add(chunk);
+        }
+        return http.Response.bytes(builder.takeBytes(), stream.statusCode,
+            headers: stream.headers);
       })()
-          .timeout(timeout);
+          .timeout(requestTimeout ?? timeout);
       if (generation != _session.generation)
         throw const ApiException(ApiFailure.unauthorized);
       if (response.statusCode != expectedStatus) {
@@ -64,6 +124,8 @@ class AuthenticatedApiClient {
           ApiConstants.unauthorized => ApiFailure.unauthorized,
           ApiConstants.forbidden => ApiFailure.forbidden,
           ApiConstants.notFound => ApiFailure.notFound,
+          ApiConstants.payloadTooLarge => ApiFailure.imageTooLarge,
+          ApiConstants.unsupportedMediaType => ApiFailure.unsupportedImage,
           ApiConstants.conflict => ApiFailure.conflict,
           >= ApiConstants.serverError && <= ApiConstants.lastServerError =>
             ApiFailure.server,
@@ -75,10 +137,7 @@ class AuthenticatedApiClient {
         }
         throw ApiException(failure);
       }
-      if (expectedStatus == ApiConstants.noContent) return null;
-      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-      if (decoded is! Map<String, dynamic>) throw const FormatException();
-      return decoded;
+      return response;
     } on ApiException {
       rethrow;
     } on TimeoutException {

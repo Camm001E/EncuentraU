@@ -1,3 +1,4 @@
+import 'report_photo.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -22,18 +23,10 @@ class ObjectReportCard extends StatelessWidget {
               padding: const EdgeInsets.all(AppSizes.spacingMedium),
               child:
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Container(
-                    width: AppSizes.cardIconSize,
-                    height: AppSizes.cardIconSize,
-                    decoration: BoxDecoration(
-                        color: AppColors.foundBackground,
-                        borderRadius:
-                            BorderRadius.circular(AppSizes.radiusLarge)),
-                    child: Icon(
-                        report.reportType == ReportType.lost
-                            ? Icons.search_off
-                            : Icons.inventory_2_outlined,
-                        color: AppColors.primary)),
+                ReportPhoto(
+                    image: report.image,
+                    height: AppSizes.reportPhotoThumbnail,
+                    thumbnail: true),
                 const SizedBox(width: AppSizes.spacingRegular),
                 Expanded(
                     child: Column(

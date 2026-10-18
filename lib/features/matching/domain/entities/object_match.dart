@@ -1,3 +1,4 @@
+import '../../../objects/domain/entities/report_image.dart';
 import '../../../objects/domain/entities/object_report.dart';
 
 enum MatchLevel { high, possible, low }
@@ -18,6 +19,7 @@ class MatchReportSummary {
       required this.category,
       required this.description,
       required this.location,
+      this.image,
       required this.eventDate,
       this.primaryColor,
       this.secondaryColors = const [],
@@ -27,6 +29,7 @@ class MatchReportSummary {
   final ReportType reportType;
   final ReportStatus status;
   final DateTime eventDate;
+  final ReportImageReference? image;
   final String? primaryColor, brand, shape;
   final List<String> secondaryColors;
 }
