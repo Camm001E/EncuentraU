@@ -1,4 +1,33 @@
+import '../domain/ownership_limits.dart';
+
 abstract final class ApiConstants {
+  static const claimsPath = '/api/v1/claims';
+  static const myClaimsPath = '$claimsPath/me';
+  static const adminClaimsPath = '/api/v1/admin/claims';
+  static const conversationsPath = '/api/v1/conversations';
+  static const myConversationsPath = '$conversationsPath/me';
+  static String claimPath(String id) =>
+      '$claimsPath/${Uri.encodeComponent(id)}';
+  static String matchClaimPath(String id) => '${matchPath(id)}/claim';
+  static String submitClaimPath(String id) => '${matchPath(id)}/claims';
+  static String adminClaimPath(String id) =>
+      '$adminClaimsPath/${Uri.encodeComponent(id)}';
+  static String approveClaimPath(String id) => '${adminClaimPath(id)}/approve';
+  static String rejectClaimPath(String id) => '${adminClaimPath(id)}/reject';
+  static String conversationPath(String id) =>
+      '$conversationsPath/${Uri.encodeComponent(id)}';
+  static String messagesPath(String id) => '${conversationPath(id)}/messages';
+  static String readConversationPath(String id) =>
+      '${conversationPath(id)}/read';
+  static const beforeParameter = 'before';
+  static const permissionDeniedCode = 'permission_denied';
+  static const workflowErrorCode = 'workflow_error';
+  static const minimumEvidenceLength = OwnershipLimits.minimumEvidenceLength;
+  static const maximumEvidenceLength = OwnershipLimits.maximumEvidenceLength;
+  static const maximumNoteLength = OwnershipLimits.maximumNoteLength;
+  static const minimumRejectionLength = OwnershipLimits.minimumRejectionLength;
+  static const maximumMessageLength = OwnershipLimits.maximumMessageLength;
+  static const messagesPageSize = OwnershipLimits.messagesPageSize;
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://127.0.0.1:8000',

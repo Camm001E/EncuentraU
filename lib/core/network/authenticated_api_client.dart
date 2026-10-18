@@ -117,15 +117,29 @@ class AuthenticatedApiClient {
       if (generation != _session.generation)
         throw const ApiException(ApiFailure.unauthorized);
       if (response.statusCode != expectedStatus) {
+        String? code;
+        if (response.statusCode == ApiConstants.forbidden ||
+            response.statusCode == ApiConstants.conflict) {
+          try {
+            code = _json(response)['code'] as String?;
+          } on Object {
+            code = null;
+          }
+        }
         final failure = switch (response.statusCode) {
           ApiConstants.badRequest ||
           ApiConstants.unprocessable =>
             ApiFailure.invalidData,
           ApiConstants.unauthorized => ApiFailure.unauthorized,
+          ApiConstants.forbidden
+              when code == ApiConstants.permissionDeniedCode =>
+            ApiFailure.permissionDenied,
           ApiConstants.forbidden => ApiFailure.forbidden,
           ApiConstants.notFound => ApiFailure.notFound,
           ApiConstants.payloadTooLarge => ApiFailure.imageTooLarge,
           ApiConstants.unsupportedMediaType => ApiFailure.unsupportedImage,
+          ApiConstants.conflict when code == ApiConstants.workflowErrorCode =>
+            ApiFailure.workflowConflict,
           ApiConstants.conflict => ApiFailure.conflict,
           >= ApiConstants.serverError && <= ApiConstants.lastServerError =>
             ApiFailure.server,

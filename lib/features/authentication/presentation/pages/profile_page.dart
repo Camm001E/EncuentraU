@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../app/routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/presentation/widgets/design_system.dart';
@@ -70,6 +71,14 @@ class ProfilePage extends StatelessWidget {
                             title: Text(item.$1),
                             subtitle: SelectableText(item.$2)),
                       const SizedBox(height: AppSizes.spacingXLarge),
+                      if (user.role == UserRole.student) ...[
+                        SecondaryAction(
+                            label: AppStrings.myClaims,
+                            icon: Icons.fact_check_outlined,
+                            onPressed: () =>
+                                Navigator.pushNamed(context, AppRoutes.claims)),
+                        const SizedBox(height: AppSizes.spacingLarge),
+                      ],
                       SecondaryAction(
                           label: controller.isBusy
                               ? AppStrings.signingOut

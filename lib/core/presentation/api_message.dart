@@ -4,6 +4,8 @@ import '../errors/api_exception.dart';
 String apiMessage(Object error) {
   if (error is! ApiException) return AppStrings.unexpectedError;
   return switch (error.failure) {
+    ApiFailure.permissionDenied => AppStrings.permissionDenied,
+    ApiFailure.workflowConflict => AppStrings.workflowConflict,
     ApiFailure.invalidData => AppStrings.apiInvalidData,
     ApiFailure.unauthorized => AppStrings.sessionExpired,
     ApiFailure.forbidden => AppStrings.inactiveAccount,
