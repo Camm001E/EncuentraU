@@ -1,3 +1,4 @@
+import '../premium/support.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -75,6 +76,7 @@ DependencyContainer fakeDependencies(FakeAuthRepository repository) {
   });
   addTearDown(client.close);
   return DependencyContainer.create(
+      dashboardRepository: TestDashboardRepository(),
       authRepository: repository,
       client: client,
       tokenStorage: MemoryTokenStorage(testToken));
@@ -116,8 +118,10 @@ void main() {
       return http.Response(jsonEncode(userJson), 200);
     });
     addTearDown(client.close);
-    final dependencies =
-        DependencyContainer.create(client: client, tokenStorage: storage);
+    final dependencies = DependencyContainer.create(
+        dashboardRepository: TestDashboardRepository(),
+        client: client,
+        tokenStorage: storage);
     addTearDown(dependencies.dispose);
     await tester.pumpWidget(EncuentraUApp(dependencies: dependencies));
     await tester.pumpAndSettle();
@@ -272,8 +276,10 @@ void main() {
       return http.Response(jsonEncode(userJson), 200);
     });
     addTearDown(client.close);
-    final dependencies =
-        DependencyContainer.create(client: client, tokenStorage: storage);
+    final dependencies = DependencyContainer.create(
+        dashboardRepository: TestDashboardRepository(),
+        client: client,
+        tokenStorage: storage);
     addTearDown(dependencies.dispose);
     await tester.pumpWidget(EncuentraUApp(dependencies: dependencies));
     await tester.pumpAndSettle();

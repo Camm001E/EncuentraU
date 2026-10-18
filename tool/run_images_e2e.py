@@ -8,6 +8,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 import uuid
@@ -15,11 +16,15 @@ from pathlib import Path
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser()
     parser.add_argument("--image-a", type=Path, required=True)
     parser.add_argument("--image-b", type=Path, required=True)
     parser.add_argument("--uploads-dir", type=Path, required=True)
     parser.add_argument("--adb", default=shutil.which("adb"))
+    parser.add_argument(
+        "--ui", action="store_true", help="Capture the premium UI journey"
+    )
     args = parser.parse_args()
     if not args.adb:
         sdk = os.environ.get("ANDROID_HOME")
@@ -29,7 +34,7 @@ def main():
             "Provide an available adb executable and two real PNG photographs."
         )
     root = Path(__file__).resolve().parents[1]
-    out = root / "build/persistent-images"
+    out = root / ("build/ui-redesign" if args.ui else "build/persistent-images")
     out.mkdir(parents=True, exist_ok=True)
     uploads = args.uploads_dir.resolve()
     known = set(uploads.glob("*"))
@@ -54,6 +59,7 @@ def main():
         "--dart-define=E2E_IMAGE_A=/data/user/0/com.encuentrau.app/cache/images_e2e/front.png",
         "--dart-define=E2E_IMAGE_B=/data/user/0/com.encuentrau.app/cache/images_e2e/side.png",
         "--dart-define=E2E_FIXTURE_RUN=" + fixture_run,
+        "--dart-define=E2E_PREMIUM_UI=" + str(args.ui).lower(),
     ]
     process = subprocess.Popen(
         command,
@@ -241,11 +247,24 @@ def main():
             )
         )
         raise SystemExit(process.returncode)
+    required = {
+        "LOGIN.png",
+        "HOME.png",
+        "REPORTS.png",
+        "REGISTER_AI.png",
+        "MATCHES.png",
+        "COMPARISON.png",
+        "EVIDENCE.png",
+        "PROFILE.png",
+    }
+    captures_valid = (
+        required.issubset(screenshots) if args.ui else len(screenshots) == 3
+    )
     if (
         not result
         or not result["passed"]
         or result["old_sha256"] not in deleted
-        or len(screenshots) != 3
+        or not captures_valid
     ):
         raise RuntimeError(
             "Missing E2E result, physical-file replacement or screenshots"

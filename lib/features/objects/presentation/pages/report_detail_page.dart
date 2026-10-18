@@ -8,7 +8,9 @@ import '../../../../core/presentation/widgets/load_feedback.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../matching/presentation/controllers/match_controller.dart';
 import '../../domain/entities/object_report.dart';
-import '../constants/report_labels.dart';
+import '../widgets/report_badges.dart';
+import '../../../../core/presentation/widgets/design_system.dart';
+import '../../../../core/theme/app_semantic_colors.dart';
 import '../controllers/object_controller.dart';
 
 class ReportDetailPage extends StatefulWidget {
@@ -81,9 +83,12 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             final controller = widget.controller;
             if (controller.detailStatus == LoadStatus.loading ||
                 controller.detailStatus == LoadStatus.initial)
-              return const Center(child: CircularProgressIndicator());
+              return const ContentWidth(
+                  child: Padding(
+                      padding: EdgeInsets.all(AppSizes.spacingLarge),
+                      child: LoadingSkeleton()));
             if (controller.detailStatus == LoadStatus.error)
-              return Center(
+              return ContentWidth(
                   child: LoadFeedback(
                       message: controller.detailMessage ??
                           AppStrings.unexpectedError,
@@ -95,64 +100,151 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
             final busy = controller.isCancelling ||
                 controller.isUpdating ||
                 widget.matchController.isGenerating;
-            return RefreshIndicator(
-                onRefresh: () => controller.loadDetail(widget.reportId),
-                child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(AppSizes.spacingMLarge),
-                    children: [
-                      ReportPhoto(image: report.image),
-                      const SizedBox(height: AppSizes.spacingMedium),
-                      Text(report.objectType,
-                          style: Theme.of(context).textTheme.headlineSmall),
-                      Wrap(spacing: AppSizes.spacingSmall, children: [
-                        Chip(label: Text(report.reportType.label)),
-                        Chip(label: Text(report.status.label))
-                      ]),
-                      Text('${AppStrings.categoryLabel}: ${report.category}'),
-                      Text(
-                          '${AppStrings.primaryColorLabel}: ${report.primaryColor ?? AppStrings.notAvailable}'),
-                      Text(
-                          '${AppStrings.secondaryColorsLabel}: ${report.secondaryColors.join(', ')}'),
-                      Text(
-                          '${AppStrings.detectedBrand}: ${report.brand ?? AppStrings.notAvailable}'),
-                      Text(
-                          '${AppStrings.shapeLabel}: ${report.shape ?? AppStrings.notAvailable}'),
-                      const SizedBox(height: AppSizes.spacingMedium),
-                      Text(report.description),
-                      Text(report.location),
-                      Text(formatDate(report.eventDate)),
-                      const SizedBox(height: AppSizes.spacingMedium),
-                      Text(
-                          '${AppStrings.privateFeatureLabel}: ${report.privateFeature ?? AppStrings.notAvailable}'),
-                      if (report.imageAnalysis != null)
-                        const Chip(label: Text(AppStrings.imageAnalysisBadge)),
-                      Text(
-                          '${AppStrings.createdAtLabel}: ${formatDate(report.createdAt)}'),
-                      Text(
-                          '${AppStrings.updatedAtLabel}: ${formatDate(report.updatedAt)}'),
-                      const SizedBox(height: AppSizes.spacingLarge),
-                      if (!active) const Text(AppStrings.reportReadOnly),
-                      FilledButton.tonalIcon(
-                          onPressed: active && !busy
-                              ? () => Navigator.pushNamed(
-                                  context, AppRoutes.editReport,
-                                  arguments: report.id)
-                              : null,
-                          icon: const Icon(Icons.edit_outlined),
-                          label: const Text(AppStrings.editReport)),
-                      OutlinedButton.icon(
-                          onPressed: active && !busy ? cancel : null,
-                          icon: const Icon(Icons.cancel_outlined),
-                          label: const Text(AppStrings.cancelReport)),
-                      FilledButton.icon(
-                          onPressed: active && !busy ? generate : null,
-                          icon: const Icon(Icons.auto_awesome),
-                          label: Text(widget.matchController.isGenerating
-                              ? AppStrings.generatingMatches
-                              : AppStrings.searchMatches)),
-                      if (widget.matchController.generationMessage != null)
-                        Text(widget.matchController.generationMessage!),
-                    ]));
+            return ContentWidth(
+                maxWidth: AppSizes.detailMaxWidth,
+                child: RefreshIndicator(
+                    onRefresh: () => controller.loadDetail(widget.reportId),
+                    child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(AppSizes.spacingLarge),
+                        children: [
+                          ReportPhoto(
+                              image: report.image,
+                              fit: BoxFit.contain,
+                              height: AppSizes.comparisonPhotoHeight),
+                          const SizedBox(height: AppSizes.spacingLarge),
+                          Wrap(
+                              spacing: AppSizes.spacingSmall,
+                              runSpacing: AppSizes.spacingSmall,
+                              children: [
+                                ReportTypeBadge(report.reportType),
+                                ReportStatusBadge(report.status)
+                              ]),
+                          const SizedBox(height: AppSizes.spacingMedium),
+                          Text(report.objectType,
+                              style:
+                                  Theme.of(context).textTheme.headlineMedium),
+                          const SizedBox(height: AppSizes.spacingMedium),
+                          Text(report.description),
+                          const SizedBox(height: AppSizes.spacingLarge),
+                          if (!active)
+                            const Padding(
+                                padding: EdgeInsets.only(
+                                    top: AppSizes.spacingMedium),
+                                child: InformationPanel(
+                                    child: Text(AppStrings.reportReadOnly))),
+                          PrimaryAction(
+                              label: widget.matchController.isGenerating
+                                  ? AppStrings.generatingMatches
+                                  : AppStrings.searchMatches,
+                              icon: Icons.join_inner_rounded,
+                              onPressed: active && !busy ? generate : null,
+                              busy: widget.matchController.isGenerating),
+                          const SizedBox(height: AppSizes.spacingRegular),
+                          SecondaryAction(
+                              label: AppStrings.editReport,
+                              icon: Icons.edit_outlined,
+                              onPressed: active && !busy
+                                  ? () => Navigator.pushNamed(
+                                      context, AppRoutes.editReport,
+                                      arguments: report.id)
+                                  : null),
+                          const SizedBox(height: AppSizes.spacingRegular),
+                          OutlinedButton.icon(
+                              onPressed: active && !busy ? cancel : null,
+                              style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppSemanticColors.of(context)
+                                      .error
+                                      .foreground),
+                              icon: const Icon(Icons.cancel_outlined),
+                              label: const Text(AppStrings.cancelReport)),
+                          const SizedBox(height: AppSizes.spacingLarge),
+                          InformationPanel(
+                              icon: Icons.place_outlined,
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(report.location,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium),
+                                    Text(formatDate(report.eventDate)),
+                                  ])),
+                          const SizedBox(height: AppSizes.spacingLarge),
+                          const SectionHeading(title: AppStrings.objectStep),
+                          for (final field in [
+                            (AppStrings.categoryLabel, report.category),
+                            (
+                              AppStrings.primaryColorLabel,
+                              report.primaryColor ?? AppStrings.notAvailable
+                            ),
+                            (
+                              AppStrings.secondaryColorsLabel,
+                              report.secondaryColors.isEmpty
+                                  ? AppStrings.notAvailable
+                                  : report.secondaryColors.join(', ')
+                            ),
+                            (
+                              AppStrings.detectedBrand,
+                              report.brand ?? AppStrings.notAvailable
+                            ),
+                            (
+                              AppStrings.shapeLabel,
+                              report.shape ?? AppStrings.notAvailable
+                            )
+                          ])
+                            Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: AppSizes.spacingMedium),
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(field.$1,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelLarge
+                                              ?.copyWith(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant)),
+                                      const SizedBox(
+                                          height: AppSizes.spacingTiny),
+                                      Text(field.$2),
+                                    ])),
+                          const SizedBox(height: AppSizes.spacingMedium),
+                          InformationPanel(
+                              icon: Icons.lock_outline,
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(AppStrings.privateFeatureLabel,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium),
+                                    const SizedBox(
+                                        height: AppSizes.spacingSmall),
+                                    Text(report.privateFeature ??
+                                        AppStrings.notAvailable),
+                                    const SizedBox(
+                                        height: AppSizes.spacingSmall),
+                                    const Text(AppStrings.privateHelp),
+                                  ])),
+                          if (report.imageAnalysis != null)
+                            const Padding(
+                                padding: EdgeInsets.only(
+                                    top: AppSizes.spacingMedium),
+                                child: Chip(
+                                    label:
+                                        Text(AppStrings.imageAnalysisBadge))),
+                          const SizedBox(height: AppSizes.spacingLarge),
+                          Text(
+                              '${AppStrings.createdAtLabel}: ${formatDate(report.createdAt)}',
+                              style: Theme.of(context).textTheme.bodySmall),
+                          Text(
+                              '${AppStrings.updatedAtLabel}: ${formatDate(report.updatedAt)}',
+                              style: Theme.of(context).textTheme.bodySmall),
+                          const SizedBox(height: AppSizes.spacingLarge),
+                        ])));
           }));
 }

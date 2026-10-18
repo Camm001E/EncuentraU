@@ -1,12 +1,11 @@
-import 'report_photo.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/routes.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/object_report.dart';
-import '../constants/report_labels.dart';
+import 'report_photo.dart';
+import 'report_badges.dart';
 
 class ObjectReportCard extends StatelessWidget {
   const ObjectReportCard(
@@ -21,35 +20,71 @@ class ObjectReportCard extends StatelessWidget {
               arguments: report.id),
           child: Padding(
               padding: const EdgeInsets.all(AppSizes.spacingMedium),
-              child:
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                ReportPhoto(
-                    image: report.image,
-                    height: AppSizes.reportPhotoThumbnail,
-                    thumbnail: true),
-                const SizedBox(width: AppSizes.spacingRegular),
-                Expanded(
-                    child: Column(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      Text(report.objectType,
-                          style: Theme.of(context).textTheme.titleMedium),
-                      Wrap(spacing: AppSizes.spacingSmall, children: [
-                        Chip(label: Text(report.reportType.label)),
-                        Chip(label: Text(report.status.label)),
-                      ]),
-                      Text(report.category),
+                          ReportPhoto(
+                              image: report.image,
+                              height: AppSizes.reportCardPhoto,
+                              thumbnail: true),
+                          const SizedBox(width: AppSizes.spacingMedium),
+                          Expanded(
+                              child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                Text(report.objectType,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium),
+                                const SizedBox(height: AppSizes.spacingTiny),
+                                Text(report.category,
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant)),
+                                const SizedBox(height: AppSizes.spacingSmall),
+                                Text([
+                                  report.primaryColor ??
+                                      AppStrings.notAvailable,
+                                  ...report.secondaryColors
+                                ].join(' · ')),
+                              ])),
+                          const Icon(Icons.arrow_outward_rounded,
+                              size: AppSizes.iconSmall),
+                        ]),
+                    const SizedBox(height: AppSizes.spacingRegular),
+                    Wrap(
+                        spacing: AppSizes.spacingSmall,
+                        runSpacing: AppSizes.spacingSmall,
+                        children: [
+                          ReportTypeBadge(report.reportType),
+                          ReportStatusBadge(report.status)
+                        ]),
+                    if (!compact) ...[
+                      const SizedBox(height: AppSizes.spacingRegular),
                       Text(report.description,
-                          maxLines: compact ? 1 : 2,
-                          overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: AppSizes.spacingSmall),
-                      Text([
-                        report.primaryColor ?? AppStrings.notAvailable,
-                        ...report.secondaryColors
-                      ].join(' · ')),
-                      Text(report.location),
-                      Text(formatDate(report.eventDate)),
-                    ])),
-                const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-              ]))));
+                          maxLines: 2, overflow: TextOverflow.ellipsis)
+                    ],
+                    const SizedBox(height: AppSizes.spacingRegular),
+                    Row(children: [
+                      Icon(Icons.place_outlined,
+                          size: AppSizes.iconSmall,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
+                      const SizedBox(width: AppSizes.spacingTiny),
+                      Expanded(child: Text(report.location))
+                    ]),
+                    const SizedBox(height: AppSizes.spacingTiny),
+                    Row(children: [
+                      Icon(Icons.calendar_today_outlined,
+                          size: AppSizes.iconSmall,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
+                      const SizedBox(width: AppSizes.spacingTiny),
+                      Expanded(child: Text(formatDate(report.eventDate)))
+                    ]),
+                  ]))));
 }

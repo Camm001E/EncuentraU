@@ -10,13 +10,15 @@ class MatchController extends PagedController<ObjectMatch> {
   MatchController(
       {required GenerateReportMatches generateReportMatches,
       required GetMyMatches getMyMatches,
-      required GetMyMatch getMyMatch})
+      required GetMyMatch getMyMatch,
+      this.onMatchesChanged})
       : _generate = generateReportMatches,
         _list = getMyMatches,
         _get = getMyMatch;
   final GenerateReportMatches _generate;
   final GetMyMatches _list;
   final GetMyMatch _get;
+  final void Function()? onMatchesChanged;
   MatchLevel? levelFilter;
   MatchStatus? statusFilter;
   ObjectMatch? detail;
@@ -49,6 +51,7 @@ class MatchController extends PagedController<ObjectMatch> {
     notify();
     try {
       final result = await _generate(reportId);
+      if (isCurrent(epoch)) onMatchesChanged?.call();
       return isCurrent(epoch) ? result : null;
     } catch (error) {
       if (isCurrent(epoch)) generationMessage = apiMessage(error);

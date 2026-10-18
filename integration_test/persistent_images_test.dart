@@ -11,6 +11,12 @@ import 'package:integration_test/integration_test.dart';
 import 'package:encuentra_u/app/app.dart';
 import 'package:encuentra_u/app/dependency_container.dart';
 import 'package:encuentra_u/app/routes.dart';
+import 'package:encuentra_u/app/app_shell.dart';
+import 'package:encuentra_u/features/authentication/presentation/pages/register_page.dart';
+import 'package:encuentra_u/features/objects/presentation/pages/objects_page.dart';
+import 'package:encuentra_u/features/authentication/presentation/pages/profile_page.dart';
+import 'package:encuentra_u/features/matching/presentation/widgets/score_ring.dart';
+import 'package:encuentra_u/features/matching/presentation/widgets/match_evidence.dart';
 import 'package:encuentra_u/core/constants/api_constants.dart';
 import 'package:encuentra_u/core/constants/app_strings.dart';
 import 'package:encuentra_u/core/presentation/paged_controller.dart';
@@ -30,6 +36,16 @@ import 'package:encuentra_u/features/matching/presentation/pages/match_detail_pa
 const imageAPath = String.fromEnvironment('E2E_IMAGE_A');
 const imageBPath = String.fromEnvironment('E2E_IMAGE_B');
 const fixtureRun = String.fromEnvironment('E2E_FIXTURE_RUN');
+const premiumUi = bool.fromEnvironment('E2E_PREMIUM_UI');
+
+Future<void> capture(WidgetTester tester, String name) async {
+  if (!premiumUi) return;
+  ScaffoldMessenger.of(tester.element(find.byType(Scaffold).last))
+      .hideCurrentSnackBar();
+  await tester.pumpAndSettle();
+  print('IMAGE_E2E_SCREENSHOT $name');
+  await tester.pump(const Duration(seconds: 2));
+}
 
 class SavedGeminiAnalysis implements ObjectAnalysisRepository {
   @override
@@ -152,6 +168,8 @@ Future<void> home(WidgetTester tester) async {
   Navigator.of(tester.element(find.byType(Scaffold).first))
       .popUntil((r) => r.settings.name == AppRoutes.home);
   await tester.pumpAndSettle();
+  tester.state<AppShellState>(find.byType(AppShell).last).selectTab(0);
+  await tester.pumpAndSettle();
 }
 
 Future<void> login(WidgetTester tester, DependencyContainer deps, String email,
@@ -198,6 +216,12 @@ Future<ObjectReport> createWithPhoto(
   await tap(tester, find.text(AppStrings.analyzeWithAi));
   await waitFor(tester, () => deps.objectAnalysisController.hasAnalysis,
       'replay saved Gemini analysis');
+  if (type == ReportType.lost && premiumUi) {
+    await tester.ensureVisible(
+        find.text(AppStrings.stepLabel(2, AppStrings.analysisStep)));
+    await tester.pumpAndSettle();
+    await capture(tester, 'REGISTER_AI');
+  }
   for (final entry in {
     'object-type': 'audífonos de diadema',
     'category': 'electronica',
@@ -210,6 +234,15 @@ Future<ObjectReport> createWithPhoto(
     await text(
         tester, find.byKey(ValueKey('report-${entry.key}')), entry.value);
   }
+  // Select an explicit past event date, independent of device/server time zones.
+  await tap(tester, find.textContaining(AppStrings.eventDateLabel));
+  final picker =
+      tester.widget<CalendarDatePicker>(find.byType(CalendarDatePicker));
+  picker.onDateChanged(DateTime.now().subtract(const Duration(days: 2)));
+  await tester.pumpAndSettle();
+  final calendarContext = tester.element(find.byType(CalendarDatePicker));
+  await tap(tester,
+      find.text(MaterialLocalizations.of(calendarContext).okButtonLabel));
   await tap(tester, find.text(AppStrings.registerReport));
   await waitFor(
       tester,
@@ -277,15 +310,16 @@ void main() {
     final emails = [
       for (final label in ['a', 'b', 'c']) 'images.$label.$run@example.com'
     ];
-    final tokens = <String>[];
+    final tokens = List<String>.filled(3, '');
     for (var i = 0; i < 3; i++) {
+      if (premiumUi && i == 0) continue;
       await api('POST', ApiConstants.authRegisterPath, expected: 201, body: {
         'full_name': 'Image E2E ${i + 1}',
         'email': emails[i],
         'student_code': 'IMG$i$run',
         'password': password
       });
-      tokens.add((await api('POST', ApiConstants.authLoginPath,
+      tokens[i] = ((await api('POST', ApiConstants.authLoginPath,
               body: {'email': emails[i], 'password': password}))['access_token']
           as String);
     }
@@ -305,10 +339,63 @@ void main() {
             find.byType(LoginPage).evaluate().isNotEmpty ||
             find.byType(HomePage).evaluate().isNotEmpty,
         'startup');
+    if (premiumUi) {
+      if (deps.authController.isAuthenticated) {
+        await home(tester);
+        await tap(tester, find.text(AppStrings.signOut));
+        await waitFor(tester,
+            () => find.byType(LoginPage).evaluate().isNotEmpty, 'fresh login');
+      }
+      await tap(tester, find.text(AppStrings.registrationTitle));
+      await waitFor(
+          tester,
+          () => find.byType(RegisterPage).evaluate().isNotEmpty,
+          'registration');
+      final values = [
+        'Comunidad UI A',
+        emails[0],
+        'IMG0$run',
+        password,
+        password
+      ];
+      for (var i = 0; i < values.length; i++) {
+        await text(tester, find.byType(TextFormField).at(i), values[i]);
+      }
+      await tap(tester, find.text(AppStrings.registerButton));
+      await waitFor(tester, () => find.byType(LoginPage).evaluate().isNotEmpty,
+          'registered account returns to login');
+      tokens[0] = (await api('POST', ApiConstants.authLoginPath,
+              body: {'email': emails[0], 'password': password}))['access_token']
+          as String;
+      await capture(tester, 'LOGIN');
+    }
     await login(tester, deps, emails[0], password);
+    if (premiumUi) {
+      await waitFor(
+          tester,
+          () => deps.dashboardController.status == LoadStatus.ready,
+          'real overview');
+      await capture(tester, 'HOME');
+    }
     final lost = await createWithPhoto(
         tester, deps, ReportType.lost, imageA, 'Cafetería imágenes $run');
     print('IMAGE_E2E_STEP A_SAVED');
+    if (premiumUi) {
+      await home(tester);
+      tester.state<AppShellState>(find.byType(AppShell)).selectTab(1);
+      await waitFor(tester,
+          () => find.byType(ObjectsPage).evaluate().isNotEmpty, 'my reports');
+      await capture(tester, 'REPORTS');
+      Navigator.of(tester.element(find.byType(ObjectsPage)))
+          .pushNamed(AppRoutes.reportDetail, arguments: lost.id);
+      await waitFor(
+          tester,
+          () =>
+              deps.objectController.detail?.id == lost.id &&
+              find.byType(ReportDetailPage).evaluate().isNotEmpty,
+          'persisted report detail');
+      expect(deps.objectController.detail!.image != null, true);
+    }
     await login(tester, deps, emails[1], password);
     final found = await createWithPhoto(
         tester, deps, ReportType.found, imageB, 'Cafetería imágenes $run');
@@ -317,9 +404,22 @@ void main() {
     expect(match.compatible, true);
     expect(match.percentage >= 85, true);
     final matchId = match.id;
+    await capture(tester, 'MATCHES');
     await openMatch(tester, deps, matchId);
     print('IMAGE_E2E_SCREENSHOT B_both_photos');
     await tester.pump(const Duration(seconds: 2));
+    if (premiumUi) {
+      await tester.ensureVisible(find.byType(ScoreRing));
+      await tester.pumpAndSettle();
+      await capture(tester, 'COMPARISON');
+      expect(find.byType(FactorEvidence), findsNWidgets(9));
+      await tester.ensureVisible(find.text(AppStrings.evidenceFactors));
+      await tester.pumpAndSettle();
+      await capture(tester, 'EVIDENCE');
+      await tester.ensureVisible(find.byKey(const ValueKey('factor-location')));
+      await tester.pumpAndSettle();
+      await capture(tester, 'EVIDENCE_CONTEXT');
+    }
     await login(tester, deps, emails[0], password);
     await openMatch(tester, deps, matchId);
     final initial = deps.matchController.detail!;
@@ -370,6 +470,19 @@ void main() {
             deps.objectController.detail?.image != null,
         'replacement persisted');
     final newSha = deps.objectController.detail!.image!.sha256;
+    if (premiumUi) {
+      await text(tester, find.byKey(const ValueKey('report-description')),
+          'Audífonos negros con detalles azules. Edición visual verificada.');
+      await tap(tester, find.text(AppStrings.saveChanges));
+      await waitFor(
+          tester,
+          () => find.byType(EditReportPage).evaluate().isEmpty,
+          'edited report persisted');
+      final edited =
+          await api('GET', ApiConstants.reportPath(lost.id), token: tokens[0]);
+      expect(edited['description'],
+          'Audífonos negros con detalles azules. Edición visual verificada.');
+    }
     expect(newSha == found.image!.sha256, true);
     final again = await api('POST', ApiConstants.generateMatchesPath(lost.id),
         token: tokens[0]);
@@ -392,7 +505,10 @@ void main() {
           'category': 'llaves',
           'description': 'Reporte anterior sin fotografía',
           'location': 'Biblioteca $run',
-          'event_date': DateTime.now().toIso8601String().substring(0, 10)
+          'event_date': DateTime.now()
+              .subtract(const Duration(days: 2))
+              .toIso8601String()
+              .substring(0, 10)
         });
     await home(tester);
     Navigator.of(tester.element(find.byType(HomePage)))
@@ -426,10 +542,23 @@ void main() {
           'requests': requests
         })}');
     await home(tester);
+    if (premiumUi) {
+      tester.state<AppShellState>(find.byType(AppShell)).selectTab(3);
+      await waitFor(tester,
+          () => find.byType(ProfilePage).evaluate().isNotEmpty, 'real profile');
+      await capture(tester, 'PROFILE');
+    }
     await tap(tester, find.text(AppStrings.signOut));
     await waitFor(
         tester, () => find.byType(LoginPage).evaluate().length == 1, 'logout');
     expect(deps.reportImageController.cache.bytes, 0);
+    expect(
+        Navigator.of(tester.element(find.byType(LoginPage))).canPop(), false);
+    expect(
+        await Navigator.of(tester.element(find.byType(LoginPage))).maybePop(),
+        false);
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginPage), findsOneWidget);
     binding.reportData = {
       'persistent_images': 'passed',
       'photos_private': true
