@@ -228,3 +228,51 @@ El recorrido registra una cuenta desde la interfaz, reutiliza un análisis previ
 crea reportes y fotos reales, compara, recrea la app, edita y cierra sesión.
 Selecciona explícitamente una fecha pasada para no depender de la zona horaria
 del emulador. No llama a Gemini ni guarda contraseñas o JWT en archivos versionados.
+
+## Reclamaciones, administración y conversación privada
+
+Los módulos `claims` y `messaging` separan entidades y puertos de dominio, casos
+de uso, modelos JSON, adaptadores HTTP y controladores de presentación. Comparten
+el cliente autenticado, las fotografías privadas y la paleta pastel del tema.
+La API decide los estados y los porcentajes; Flutter solo los representa.
+
+El propietario de un reporte perdido puede reclamar desde una coincidencia
+pendiente con ambos reportes activos. La respuesta privada requiere confirmación
+y no puede editarse después. Perfil permite abrir **Mis reclamaciones**, con
+filtros, paginación y refresco. El custodio recibe solo el estado de revisión,
+nunca la respuesta privada ni las características del otro reporte.
+
+El rol `admin` abre un shell separado con Resumen, Reclamaciones y Perfil. Las
+cifras proceden de los totales paginados de la API. El detalle reúne fotografías,
+compatibilidad, factores y evidencia privada. Aprobar o rechazar pide confirmación;
+el rechazo exige un motivo. Los estudiantes no pueden abrir rutas administrativas.
+La creación de administradores se realiza exclusivamente con la CLI del backend;
+la app no registra roles privilegiados.
+
+El acceso **Mensajes** aparece al existir conversaciones reales. También puede
+abrirse desde una reclamación aprobada. El chat muestra solo nombre de
+visualización, objeto y texto plano. Un UUID v4 por envío se conserva al reintentar
+un fallo, evitando mensajes duplicados. La historia se pagina mediante el cursor
+de FastAPI y la lectura confirma únicamente el último mensaje descargado.
+El polling ocurre cada cuatro segundos mientras la ruta está visible y la app
+está en primer plano. Se detiene al salir, suspender o cerrar la sesión.
+
+Un 401 elimina credenciales y todos los datos privados de reclamaciones,
+administración, conversaciones, mensajes e imágenes. Un 403 de permisos conserva
+la sesión; un 403 de cuenta inactiva la elimina. Las pantallas no interpretan
+HTML ni muestran errores internos del servidor. Los mensajes no admiten adjuntos,
+edición o eliminación. La entrega final del objeto todavía no está implementada.
+
+Prueba real opcional con PostgreSQL, FastAPI y `emulator-5554` ya activos:
+
+```powershell
+python -X utf8 tool/run_claims_chat_e2e.py --backend-root "<backend>" --image-a "<foto-A.png>" --image-b "<foto-B.png>" --adb "<Android-SDK>/platform-tools/adb.exe"
+```
+
+El comando crea un administrador mediante la misma CLI segura, con contraseña
+aleatoria solo en memoria. Transfiere la credencial una vez al caché privado de la
+app de depuración y la elimina al consumirla. Conserva los usuarios y reportes de
+prueba en PostgreSQL, pero no exporta contraseñas ni JWT. Reutiliza el análisis de
+Gemini anterior sin nuevas llamadas. Las capturas, logs y resultados permanecen
+en `build/claims-chat-e2e/`, ignorado por Git. No usar credenciales reales con este
+recorrido de desarrollo.

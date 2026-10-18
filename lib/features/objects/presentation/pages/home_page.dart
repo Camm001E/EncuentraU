@@ -18,10 +18,12 @@ class HomePage extends StatefulWidget {
       {required this.controller,
       required this.authController,
       this.dashboardController,
+      this.onRefresh,
       super.key});
   final ObjectController controller;
   final AuthController authController;
   final DashboardController? dashboardController;
+  final Future<void> Function()? onRefresh;
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -43,6 +45,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> refresh() async => Future.wait([
+        if (widget.onRefresh != null) widget.onRefresh!(),
         widget.controller.refresh(),
         if (widget.dashboardController != null)
           widget.dashboardController!.refresh(),

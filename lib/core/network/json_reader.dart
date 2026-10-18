@@ -1,5 +1,17 @@
+import '../domain/page.dart';
+
 /// Strict readers never echo server input in errors.
 abstract final class JsonReader {
+  static Page<T> page<T>(Map<String, dynamic> json, T Function(dynamic) read) {
+    final items = list(json['items'], read);
+    final total = integer(json['total']),
+        limit = integer(json['limit']),
+        offset = integer(json['offset']);
+    if (total < 0 || limit < 1 || offset < 0 || items.length > limit)
+      throw const FormatException();
+    return Page(items: items, total: total, limit: limit, offset: offset);
+  }
+
   static Map<String, dynamic> object(dynamic value) {
     if (value is Map<String, dynamic>) return value;
     throw const FormatException();
