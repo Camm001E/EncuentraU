@@ -1,4 +1,5 @@
 abstract final class AppDurations {
+  static const chatPolling = Duration(seconds: 4);
   static const micro = Duration(milliseconds: 180);
   static const reveal = Duration(milliseconds: 450);
   static const scoreReveal = Duration(milliseconds: 1100);

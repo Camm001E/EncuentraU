@@ -1,4 +1,12 @@
 abstract final class AppSizes {
+  static const double chatCompactHeight = 520;
+  static const double chatMinimumBodyHeight = 120;
+  static const int chatCompactInputLines = 2;
+  static const double chatBubbleMaxWidth = 560;
+  static const double chatBubbleFraction = .86;
+  static const int chatInputMaxLines = 5;
+  static const int evidenceInputMinLines = 4;
+  static const int evidenceInputMaxLines = 8;
   static const double touchTarget = 48;
   static const double spacingTiny = 4;
   static const double radiusSmall = 8;

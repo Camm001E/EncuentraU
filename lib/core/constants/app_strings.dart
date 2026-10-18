@@ -1,6 +1,116 @@
 import 'app_validation.dart';
 
 abstract final class AppStrings {
+  // Ownership review and approved private conversations.
+  static const permissionDenied =
+      'No tienes permiso para realizar esta acción.';
+  static const workflowConflict =
+      'El estado cambió o esta acción ya fue realizada. Actualiza la información.';
+  static const myClaims = 'Mis reclamaciones';
+  static const claimsSubtitle =
+      'Sigue la revisión de los objetos que conectan tus reportes.';
+  static const claimThisObject = 'Reclamar este objeto';
+  static const claimFormTitle = 'Cuéntanos qué lo hace tuyo';
+  static const claimFormHelp =
+      'Un administrador comparará tu respuesta con las características privadas de ambos reportes. La coincidencia no acredita la propiedad por sí sola.';
+  static const ownershipEvidenceLabel = 'Característica privada que reconoces';
+  static const ownershipEvidenceHelp =
+      'Describe una señal, marca o detalle que permita identificar tu objeto.';
+  static const sensitiveDataWarning =
+      'No escribas contraseñas, datos bancarios ni información personal innecesaria.';
+  static const evidenceValidation = 'Escribe entre 10 y 4000 caracteres.';
+  static const submitClaim = 'Enviar reclamación';
+  static const submitClaimConfirmation =
+      '¿Quieres enviar esta respuesta para revisión? No podrá modificarse después.';
+  static const claimSent = 'Reclamación enviada para revisión.';
+  static const claimDetailTitle = 'Seguimiento de la reclamación';
+  static const claimPending = 'Pendiente de revisión';
+  static const claimApproved = 'Reclamación aprobada';
+  static const claimRejected = 'Reclamación rechazada';
+  static const pendingClaimHelp =
+      'La administración revisará las fotografías y las características privadas. El chat permanece bloqueado hasta la aprobación.';
+  static const custodianPending = 'Existe una reclamación en revisión';
+  static const custodianPrivacy =
+      'La respuesta privada se reserva para su propietario y la administración.';
+  static const yourOwnershipEvidence = 'Tu respuesta privada';
+  static const rejectionReasonLabel = 'Motivo de rechazo';
+  static const claimReviewed = 'Revisada';
+  static const claimCreated = 'Reclamación enviada';
+  static const chatEnabled = 'Chat privado habilitado';
+  static const chatEnabledHelp =
+      'La revisión fue aprobada. Ya pueden coordinarse mediante una conversación privada.';
+  static const chatRejectedHelp =
+      'Esta reclamación no habilita una conversación.';
+  static const openClaim = 'Ver reclamación';
+  static const openChat = 'Abrir conversación';
+  static const noClaims = 'Todavía no hay reclamaciones en este filtro.';
+  static const claimantLabel = 'Tu objeto perdido';
+  static const custodianLabel = 'Objeto que custodias';
+  static const claimStatusFilter = 'Estado de la reclamación';
+  static const workflowCancel = 'Volver';
+  static const reviewQueue = 'Reclamaciones';
+  static const adminHome = 'Resumen';
+  static const adminDashboardTitle = 'Revisar para reencontrar';
+  static const adminDashboardHelp =
+      'Compara la evidencia privada y autoriza una conexión segura entre estudiantes.';
+  static const pendingClaims = 'Pendientes';
+  static const approvedClaims = 'Aprobadas';
+  static const rejectedClaims = 'Rechazadas';
+  static const reviewClaim = 'Revisar reclamación';
+  static const adminClaimDetail = 'Revisión de propiedad';
+  static const adminPrivateEvidence = 'Evidencia reservada para administración';
+  static const claimantAnswer = 'Respuesta del reclamante';
+  static const lostPrivateFeature = 'Característica privada · reporte perdido';
+  static const foundPrivateFeature =
+      'Característica privada · reporte encontrado';
+  static const adminNote = 'Nota administrativa (opcional)';
+  static const internalNoteHelp =
+      'La nota es interna. El motivo de rechazo será visible para ambos participantes; evita revelar características privadas ajenas.';
+  static const approveClaim = 'Aprobar reclamación';
+  static const rejectClaim = 'Rechazar reclamación';
+  static const approveClaimConfirmation =
+      'La coincidencia será aceptada y se creará una conversación privada para los dos participantes.';
+  static const rejectClaimConfirmation =
+      'La coincidencia será rechazada y no se creará una conversación.';
+  static const reviewReasonValidation =
+      'Explica el motivo con entre 3 y 2000 caracteres.';
+  static const noteValidation = 'Usa como máximo 2000 caracteres.';
+  static const approvalCompleted =
+      'Reclamación aprobada. Conversación creada para sus participantes.';
+  static const rejectionCompleted =
+      'Reclamación rechazada con el motivo indicado.';
+  static const reviewFinal = 'La decisión ya es definitiva.';
+  static const adminChatPrivacy =
+      'La conversación está reservada para los dos participantes. La administración no tiene acceso a sus mensajes.';
+  static const noPrivateFeature = 'No se registró una característica privada.';
+  static const messages = 'Mensajes';
+  static const conversationsTitle = 'Tus conversaciones';
+  static const conversationsHelp =
+      'Conexiones privadas habilitadas después de una revisión aprobada.';
+  static const noConversations = 'Aún no tienes conversaciones aprobadas.';
+  static const noMessages =
+      'Todavía no hay mensajes. Puedes iniciar la conversación.';
+  static const noLastMessage = 'Conversación lista para comenzar';
+  static const privateChat = 'Conversación privada';
+  static const approvedChat = 'Reclamación aprobada';
+  static const chatPrivacyHelp =
+      'Solo los dos participantes pueden leer esta conversación. Evita compartir información sensible innecesaria.';
+  static const writeMessage = 'Escribe un mensaje';
+  static const sendMessage = 'Enviar mensaje';
+  static const sendingMessage = 'Enviando mensaje';
+  static const retryMessage = 'Reintentar envío';
+  static const messageValidation =
+      'Escribe un mensaje de entre 1 y 2000 caracteres.';
+  static const previousMessages = 'Cargar mensajes anteriores';
+  static const yourMessage = 'Tú';
+  static const conversationClosed = 'Conversación cerrada';
+  static const conversationsUpdating = 'Actualizando conversación';
+  static String unreadMessages(int count) => '$count mensajes sin leer';
+  static String messageSemantics(String author, String time, String body) =>
+      '$author, $time. $body';
+  static String claimDate(String date) => 'Enviada el $date';
+  static String privateEvidenceSemantics(String label, String value) =>
+      '$label. $value';
   static const navHome = 'Inicio';
   static const navProfile = 'Perfil';
   static const brandEyebrow = 'CONECTAMOS LO QUE IMPORTA';

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'routes.dart';
+import '../features/messaging/presentation/controllers/conversations_controller.dart';
 import '../core/constants/app_durations.dart';
 import '../core/constants/app_sizes.dart';
 import '../core/constants/app_strings.dart';
@@ -19,18 +21,28 @@ class AppShell extends StatefulWidget {
       required this.auth,
       required this.matches,
       required this.dashboard,
+      this.conversations,
       this.initialIndex = 0,
       super.key});
   final ObjectController objects;
   final AuthController auth;
   final MatchController matches;
   final DashboardController dashboard;
+  final ConversationsController? conversations;
   final int initialIndex;
   @override
   State<AppShell> createState() => AppShellState();
 }
 
 class AppShellState extends State<AppShell> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.conversations?.ensureLoaded();
+    });
+  }
+
   late int _index = widget.initialIndex;
   int get selectedIndex => _index;
   void selectTab(int index) {
@@ -51,6 +63,7 @@ class AppShellState extends State<AppShell> {
   ];
   Widget page() => switch (_index) {
         0 => HomePage(
+            onRefresh: widget.conversations?.refresh,
             controller: widget.objects,
             authController: widget.auth,
             dashboardController: widget.dashboard),
@@ -75,6 +88,22 @@ class AppShellState extends State<AppShell> {
               if (!popped && _index != 0) selectTab(0);
             },
             child: Scaffold(
+              floatingActionButton: widget.conversations == null
+                  ? null
+                  : AnimatedBuilder(
+                      animation: widget.conversations!,
+                      builder: (context, _) =>
+                          widget.conversations!.items.isEmpty
+                              ? const SizedBox.shrink()
+                              : FloatingActionButton.extended(
+                                  onPressed: () => Navigator.pushNamed(
+                                              context, AppRoutes.conversations)
+                                          .then((_) {
+                                        if (mounted)
+                                          widget.conversations?.refresh();
+                                      }),
+                                  icon: const Icon(Icons.forum_outlined),
+                                  label: const Text(AppStrings.messages))),
               body: Row(children: [
                 if (wide) ...[
                   SafeArea(

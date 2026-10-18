@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../claims/presentation/controllers/claims_controller.dart';
+import '../../../claims/presentation/widgets/match_claim_panel.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/presentation/paged_controller.dart';
@@ -9,9 +11,13 @@ import '../../../../core/presentation/widgets/design_system.dart';
 
 class MatchDetailPage extends StatefulWidget {
   const MatchDetailPage(
-      {required this.matchId, required this.controller, super.key});
+      {required this.matchId,
+      required this.controller,
+      this.claimsController,
+      super.key});
   final String matchId;
   final MatchController controller;
+  final ClaimsController? claimsController;
   @override
   State<MatchDetailPage> createState() => _MatchDetailPageState();
 }
@@ -53,6 +59,8 @@ class _MatchDetailPageState extends State<MatchDetailPage> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(AppSizes.spacingMLarge),
                         children: [
+                          if (widget.claimsController case final claims?)
+                            MatchClaimPanel(match: match, controller: claims),
                           MatchCard(
                               key: ValueKey(match.id),
                               match: match,
