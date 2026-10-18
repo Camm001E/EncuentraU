@@ -1,3 +1,4 @@
+import '../../../objects/data/models/report_image_model.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/json_reader.dart';
 import '../../../objects/domain/entities/object_report.dart';
@@ -26,7 +27,9 @@ abstract final class ObjectMatchModel {
           shape: JsonReader.optionalString(json['shape']),
           description: JsonReader.string(json['description']),
           location: JsonReader.string(json['location']),
-          eventDate: JsonReader.date(json['event_date']));
+          eventDate: JsonReader.date(json['event_date']),
+          image: ReportImageModel.forReport(
+              json['image'], JsonReader.string(json['id'])));
   static MatchFactor factor(Map<String, dynamic> json) => MatchFactor(
       name: JsonReader.string(json['name']),
       group: JsonReader.enumeration(json['group'], MatchFactorGroup.values),

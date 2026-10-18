@@ -1,6 +1,10 @@
+import 'dart:async';
+import '../../domain/entities/report_image.dart';
+import '../widgets/report_image_scope.dart';
+import '../widgets/report_photo_picker.dart';
+import '../../../../core/presentation/api_message.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -19,11 +23,13 @@ class RegisterObjectPage extends StatefulWidget {
       required this.controller,
       required this.analysisController,
       required this.matchController,
+      this.pickImage = pickReportPhoto,
       super.key});
   final ReportType type;
   final ObjectController controller;
   final ObjectAnalysisController analysisController;
   final MatchController matchController;
+  final Future<ReportImageUpload?> Function() pickImage;
   @override
   State<RegisterObjectPage> createState() => _RegisterObjectPageState();
 }
@@ -31,11 +37,13 @@ class RegisterObjectPage extends StatefulWidget {
 class _RegisterObjectPageState extends State<RegisterObjectPage> {
   final _formKey = GlobalKey<FormState>();
   final _data = ReportFormData();
-  XFile? _image;
+  ReportImageUpload? _image;
+  bool _photoUploaded = false;
+  bool _photoFailure = false;
   Uint8List? _preview;
   ObjectReport? _savedReport;
   bool _submitting = false;
-  late final Listenable _changes;
+  late Listenable _changes;
   @override
   void initState() {
     super.initState();
@@ -46,44 +54,41 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
 
   @override
   void dispose() {
+    if (_preview != null) unawaited(MemoryImage(_preview!).evict());
+    _preview = null;
+    _image = null;
     _data.dispose();
     super.dispose();
   }
 
   void showMessage(String message) => ScaffoldMessenger.of(context)
       .showSnackBar(SnackBar(content: Text(message)));
-  String? mimeType(XFile image) {
-    if (ApiConstants.allowedImageMimeTypes.contains(image.mimeType))
-      return image.mimeType;
-    final name = image.name.toLowerCase();
-    if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
-    if (name.endsWith('.png')) return 'image/png';
-    if (name.endsWith('.webp')) return 'image/webp';
-    return null;
-  }
-
   Future<void> selectImage() async {
     try {
-      final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+      final image = await widget.pickImage();
       if (image == null || !mounted) return;
-      if (mimeType(image) == null) {
-        showMessage(AppStrings.unsupportedImage);
-        return;
-      }
-      if (await image.length() > ApiConstants.maxImageSizeBytes) {
-        if (mounted) showMessage(AppStrings.imageTooLarge);
-        return;
-      }
-      final bytes = await image.readAsBytes();
-      if (!mounted) return;
       widget.analysisController.reset();
+      if (_preview != null) unawaited(MemoryImage(_preview!).evict());
       setState(() {
         _image = image;
-        _preview = bytes;
+        _preview = Uint8List.fromList(image.bytes);
+        _photoUploaded = false;
+        _photoFailure = false;
       });
-    } catch (_) {
-      if (mounted) showMessage(AppStrings.imagePickerError);
+    } catch (error) {
+      if (mounted) showMessage(apiMessage(error));
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _changes = Listenable.merge([
+      widget.controller,
+      widget.analysisController,
+      widget.matchController,
+      if (ReportImageScope.maybeOf(context) case final controller?) controller
+    ]);
   }
 
   Future<void> analyze() async {
@@ -98,8 +103,8 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
     }
     final success = await widget.analysisController.analyze(ObjectImageInput(
         bytes: _preview!,
-        fileName: _image!.name,
-        mimeType: mimeType(_image!)!,
+        fileName: _image!.filename,
+        mimeType: _image!.contentType,
         description: _data.description.text.trim()));
     if (!mounted) return;
     final analysis = widget.analysisController.analysis;
@@ -114,7 +119,8 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
   Future<void> submit() async {
     if (_submitting ||
         widget.analysisController.isAnalyzing ||
-        !(_formKey.currentState?.validate() ?? false)) return;
+        (_savedReport == null && !(_formKey.currentState?.validate() ?? false)))
+      return;
     setState(() => _submitting = true);
     try {
       _savedReport ??= await widget.controller.register(
@@ -125,6 +131,19 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
         showMessage(
             widget.controller.actionMessage ?? AppStrings.unexpectedError);
         return;
+      }
+      if (_image != null && !_photoUploaded) {
+        final images = ReportImageScope.maybeOf(context);
+        final uploaded = await images?.upload(saved.id, _image!);
+        if (!mounted) return;
+        if (uploaded == null) {
+          setState(() => _photoFailure = true);
+          return;
+        }
+        _photoUploaded = true;
+        _photoFailure = false;
+        await widget.controller.refresh();
+        if (!mounted) return;
       }
       final result = await widget.matchController.generate(saved.id);
       if (!mounted) return;
@@ -181,7 +200,16 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                                                 Image.memory(_preview!,
                                                     height: AppSizes
                                                         .imagePreviewHeight,
-                                                    fit: BoxFit.contain),
+                                                    fit: BoxFit.contain,
+                                                    errorBuilder: (_, error,
+                                                            stack) =>
+                                                        const Icon(
+                                                            Icons
+                                                                .broken_image_outlined,
+                                                            size: AppSizes
+                                                                .iconLarge,
+                                                            color: AppColors
+                                                                .textSecondary)),
                                               if (_preview == null)
                                                 const Icon(
                                                     Icons
@@ -192,7 +220,9 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                                               const Text(AppStrings.photoHelp),
                                               OutlinedButton.icon(
                                                   onPressed:
-                                                      busy ? null : selectImage,
+                                                      busy || _photoUploaded
+                                                          ? null
+                                                          : selectImage,
                                                   icon: const Icon(Icons
                                                       .photo_library_outlined),
                                                   label: Text(_preview == null
@@ -201,9 +231,12 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                                                           .changePhoto)),
                                             ]))),
                                     ReportFormFields(
-                                        data: _data, enabled: !busy),
+                                        data: _data,
+                                        enabled: !busy && _savedReport == null),
                                     FilledButton.tonalIcon(
-                                        onPressed: busy ? null : analyze,
+                                        onPressed: busy || _savedReport != null
+                                            ? null
+                                            : analyze,
                                         icon: const Icon(Icons.auto_awesome),
                                         label: Text(analysis.isAnalyzing
                                             ? AppStrings.analyzingImage
@@ -228,6 +261,15 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                                           ]),
                                     const SizedBox(
                                         height: AppSizes.spacingLarge),
+                                    if (_photoFailure)
+                                      const Text(
+                                          AppStrings.reportSavedPhotoFailed),
+                                    if (_savedReport != null &&
+                                        ReportImageScope.maybeOf(context)
+                                                ?.message(_savedReport!.id) !=
+                                            null)
+                                      Text(ReportImageScope.maybeOf(context)!
+                                          .message(_savedReport!.id)!),
                                     FilledButton.icon(
                                         onPressed: busy ? null : submit,
                                         icon: busy
@@ -240,12 +282,23 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
                                                             .strokeWidth))
                                             : const Icon(
                                                 Icons.check_circle_outline),
-                                        label: Text(widget
-                                                .matchController.isGenerating
-                                            ? AppStrings.generatingMatches
-                                            : _submitting
-                                                ? AppStrings.savingReport
-                                                : AppStrings.registerReport)),
+                                        label: Text(_savedReport != null &&
+                                                (ReportImageScope.maybeOf(
+                                                            context)
+                                                        ?.isBusy(
+                                                            _savedReport!.id) ??
+                                                    false)
+                                            ? AppStrings.uploadingPhoto
+                                            : widget.matchController
+                                                    .isGenerating
+                                                ? AppStrings.generatingMatches
+                                                : _submitting
+                                                    ? AppStrings.savingReport
+                                                    : _photoFailure
+                                                        ? AppStrings
+                                                            .retryPhotoUpload
+                                                        : AppStrings
+                                                            .registerReport)),
                                   ]))))),
             ));
       });

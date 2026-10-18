@@ -9,6 +9,8 @@ enum ApiFailure {
   timeout,
   invalidResponse,
   storage,
+  imageTooLarge,
+  unsupportedImage,
 }
 
 class ApiException implements Exception {

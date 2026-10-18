@@ -1,3 +1,4 @@
+import '../features/objects/presentation/widgets/report_image_scope.dart';
 import 'package:flutter/material.dart';
 import '../core/constants/app_strings.dart';
 import '../core/theme/app_theme.dart';
@@ -63,7 +64,9 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => ReportImageScope(
+      controller: dependencies.reportImageController,
+      child: MaterialApp(
           navigatorKey: _navigator,
           title: AppStrings.appName,
           debugShowCheckedModeBanner: false,
@@ -107,5 +110,5 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
                 context,
                 (id) => MatchDetailPage(
                     matchId: id, controller: dependencies.matchController))),
-          });
+          }));
 }

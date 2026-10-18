@@ -1,3 +1,8 @@
+import '../features/objects/domain/repositories/object_analysis_repository.dart';
+import '../features/objects/data/datasources/report_image_remote_data_source.dart';
+import '../features/objects/data/repositories/report_image_repository_impl.dart';
+import '../features/objects/domain/usecases/report_images.dart';
+import '../features/objects/presentation/controllers/report_image_controller.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import '../core/errors/api_exception.dart';
@@ -35,6 +40,7 @@ import '../features/matching/presentation/controllers/match_controller.dart';
 class DependencyContainer {
   DependencyContainer._(
       {required this.objectController,
+      required this.reportImageController,
       required this.matchController,
       required this.authController,
       required this.objectAnalysisController,
@@ -49,6 +55,8 @@ class DependencyContainer {
         objectController.clear();
         matchController.clear();
         objectAnalysisController.reset();
+        reportImageController.clear();
+        if (userId != null) reportImageController.activate();
       }
     };
     authController.addListener(_authListener);
@@ -56,6 +64,7 @@ class DependencyContainer {
         authController.expireSession(inactive: reason == ApiFailure.forbidden));
   }
   final ObjectController objectController;
+  final ReportImageController reportImageController;
   final MatchController matchController;
   final AuthController authController;
   final ObjectAnalysisController objectAnalysisController;
@@ -67,18 +76,26 @@ class DependencyContainer {
   static DependencyContainer create(
       {http.Client? client,
       TokenStorage? tokenStorage,
-      AuthRepository? authRepository}) {
+      AuthRepository? authRepository,
+      ObjectAnalysisRepository? analysisRepository}) {
     final sharedClient = client ?? http.Client();
     final session = SessionManager(tokenStorage ?? const SecureTokenStorage(),
         active: false);
     final api = AuthenticatedApiClient(client: sharedClient, session: session);
     final objects = ObjectRepositoryImpl(ObjectReportRemoteDataSource(api));
+    final imageRepository =
+        ReportImageRepositoryImpl(ReportImageRemoteDataSource(api));
     final matches = MatchRepositoryImpl(MatchRemoteDataSource(api));
     final authentication = authRepository ??
         AuthRepositoryImpl(AuthRemoteDataSource(client: sharedClient), session);
     return DependencyContainer._(
         ownedClient: client == null ? sharedClient : null,
         session: session,
+        reportImageController: ReportImageController(
+            upload: UploadReportImage(imageRepository),
+            metadata: GetReportImage(imageRepository),
+            download: DownloadReportImage(imageRepository),
+            delete: DeleteReportImage(imageRepository)),
         objectController: ObjectController(
             getMyReports: GetMyReports(objects),
             getMyReport: GetMyReport(objects),
@@ -95,8 +112,9 @@ class DependencyContainer {
             restoreSession: RestoreSession(authentication),
             logoutUser: LogoutUser(authentication)),
         objectAnalysisController: ObjectAnalysisController(AnalyzeObjectImage(
-            ObjectAnalysisRepositoryImpl(
-                ObjectAnalysisRemoteDataSource(client: sharedClient)))));
+            analysisRepository ??
+                ObjectAnalysisRepositoryImpl(
+                    ObjectAnalysisRemoteDataSource(client: sharedClient)))));
   }
 
   void dispose() {
@@ -107,6 +125,7 @@ class DependencyContainer {
     objectController.dispose();
     matchController.dispose();
     objectAnalysisController.dispose();
+    reportImageController.dispose();
     _ownedClient?.close();
   }
 }
