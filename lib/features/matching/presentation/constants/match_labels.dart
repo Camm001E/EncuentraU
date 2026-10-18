@@ -2,6 +2,11 @@ import '../../../../core/constants/app_strings.dart';
 import '../../domain/entities/object_match.dart';
 
 extension MatchLevelLabel on MatchLevel {
+  String get shortLabel => switch (this) {
+        MatchLevel.high => AppStrings.highShort,
+        MatchLevel.possible => AppStrings.possibleShort,
+        MatchLevel.low => AppStrings.lowShort
+      };
   String get label => switch (this) {
         MatchLevel.high => AppStrings.highMatch,
         MatchLevel.possible => AppStrings.possibleMatch,

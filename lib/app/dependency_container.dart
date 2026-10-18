@@ -1,4 +1,8 @@
 import '../features/objects/domain/repositories/object_analysis_repository.dart';
+import '../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../features/dashboard/domain/usecases/get_dashboard_summary.dart';
+import '../features/dashboard/data/repositories/dashboard_repository_impl.dart';
+import '../features/dashboard/presentation/controllers/dashboard_controller.dart';
 import '../features/objects/data/datasources/report_image_remote_data_source.dart';
 import '../features/objects/data/repositories/report_image_repository_impl.dart';
 import '../features/objects/domain/usecases/report_images.dart';
@@ -40,6 +44,7 @@ import '../features/matching/presentation/controllers/match_controller.dart';
 class DependencyContainer {
   DependencyContainer._(
       {required this.objectController,
+      required this.dashboardController,
       required this.reportImageController,
       required this.matchController,
       required this.authController,
@@ -53,6 +58,7 @@ class DependencyContainer {
         _userId = userId;
         session.changeSession(active: userId != null);
         objectController.clear();
+        dashboardController.clear();
         matchController.clear();
         objectAnalysisController.reset();
         reportImageController.clear();
@@ -64,6 +70,7 @@ class DependencyContainer {
         authController.expireSession(inactive: reason == ApiFailure.forbidden));
   }
   final ObjectController objectController;
+  final DashboardController dashboardController;
   final ReportImageController reportImageController;
   final MatchController matchController;
   final AuthController authController;
@@ -77,6 +84,7 @@ class DependencyContainer {
       {http.Client? client,
       TokenStorage? tokenStorage,
       AuthRepository? authRepository,
+      DashboardRepository? dashboardRepository,
       ObjectAnalysisRepository? analysisRepository}) {
     final sharedClient = client ?? http.Client();
     final session = SessionManager(tokenStorage ?? const SecureTokenStorage(),
@@ -88,7 +96,10 @@ class DependencyContainer {
     final matches = MatchRepositoryImpl(MatchRemoteDataSource(api));
     final authentication = authRepository ??
         AuthRepositoryImpl(AuthRemoteDataSource(client: sharedClient), session);
+    final dashboard = DashboardController(GetDashboardSummary(
+        dashboardRepository ?? DashboardRepositoryImpl(objects, matches)));
     return DependencyContainer._(
+        dashboardController: dashboard,
         ownedClient: client == null ? sharedClient : null,
         session: session,
         reportImageController: ReportImageController(
@@ -97,12 +108,14 @@ class DependencyContainer {
             download: DownloadReportImage(imageRepository),
             delete: DeleteReportImage(imageRepository)),
         objectController: ObjectController(
+            onReportsChanged: dashboard.refresh,
             getMyReports: GetMyReports(objects),
             getMyReport: GetMyReport(objects),
             registerObject: RegisterObject(objects),
             updateReport: UpdateObjectReport(objects),
             cancelReport: CancelObjectReport(objects)),
         matchController: MatchController(
+            onMatchesChanged: dashboard.refresh,
             generateReportMatches: GenerateReportMatches(matches),
             getMyMatches: GetMyMatches(matches),
             getMyMatch: GetMyMatch(matches)),
@@ -123,6 +136,7 @@ class DependencyContainer {
     unawaited(session.dispose());
     authController.dispose();
     objectController.dispose();
+    dashboardController.dispose();
     matchController.dispose();
     objectAnalysisController.dispose();
     reportImageController.dispose();

@@ -5,6 +5,7 @@ import '../../../../core/presentation/paged_controller.dart';
 import '../../../../core/presentation/widgets/load_feedback.dart';
 import '../controllers/match_controller.dart';
 import '../widgets/match_card.dart';
+import '../../../../core/presentation/widgets/design_system.dart';
 
 class MatchDetailPage extends StatefulWidget {
   const MatchDetailPage(
@@ -33,7 +34,10 @@ class _MatchDetailPageState extends State<MatchDetailPage> {
             final controller = widget.controller;
             if (controller.detailStatus == LoadStatus.loading ||
                 controller.detailStatus == LoadStatus.initial)
-              return const Center(child: CircularProgressIndicator());
+              return const ContentWidth(
+                  child: Padding(
+                      padding: EdgeInsets.all(AppSizes.spacingLarge),
+                      child: LoadingSkeleton()));
             if (controller.detailStatus == LoadStatus.error)
               return LoadFeedback(
                   message:
@@ -42,11 +46,17 @@ class _MatchDetailPageState extends State<MatchDetailPage> {
             final match = controller.detail;
             if (match == null || match.id != widget.matchId)
               return const LoadFeedback(message: AppStrings.apiNotFound);
-            return RefreshIndicator(
-                onRefresh: () => controller.loadDetail(widget.matchId),
-                child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(AppSizes.spacingMLarge),
-                    children: [MatchCard(match: match, detail: true)]));
+            return ContentWidth(
+                child: RefreshIndicator(
+                    onRefresh: () => controller.loadDetail(widget.matchId),
+                    child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(AppSizes.spacingMLarge),
+                        children: [
+                          MatchCard(
+                              key: ValueKey(match.id),
+                              match: match,
+                              detail: true)
+                        ])));
           }));
 }

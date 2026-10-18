@@ -7,6 +7,8 @@ import '../../../../core/constants/app_validation.dart';
 import '../controllers/auth_controller.dart';
 import '../widgets/auth_brand_header.dart';
 import '../widgets/auth_error_message.dart';
+import '../widgets/auth_layout.dart';
+import '../../../../core/presentation/widgets/design_system.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({required this.controller, super.key});
@@ -60,103 +62,98 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: widget.controller,
-        builder: (context, _) {
-          final busy = widget.controller.isBusy;
-          final error = widget.controller.errorMessage;
-          return Scaffold(
-              body: SafeArea(
-                  child: Center(
-                      child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSizes.spacingLarge),
-            child: ConstrainedBox(
-              constraints:
-                  const BoxConstraints(maxWidth: AppSizes.formMaxWidth),
-              child: Card(
-                  child: Padding(
-                padding: const EdgeInsets.all(AppSizes.spacingXLarge),
-                child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const AuthBrandHeader(),
-                        const SizedBox(height: AppSizes.spacingXLarge),
-                        TextFormField(
-                          controller: _emailController,
-                          enabled: !busy,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.email],
-                          decoration: const InputDecoration(
-                              labelText: AppStrings.emailLabel,
-                              prefixIcon: Icon(Icons.alternate_email_rounded)),
-                          validator: _validateEmail,
-                        ),
-                        const SizedBox(height: AppSizes.spacingMedium),
-                        TextFormField(
-                          controller: _passwordController,
-                          enabled: !busy,
-                          obscureText: _hidePassword,
-                          textInputAction: TextInputAction.done,
-                          autofillHints: const [AutofillHints.password],
-                          decoration: InputDecoration(
-                              labelText: AppStrings.passwordLabel,
-                              prefixIcon:
-                                  const Icon(Icons.lock_outline_rounded),
-                              suffixIcon: IconButton(
-                                onPressed: busy
-                                    ? null
-                                    : () => setState(
-                                        () => _hidePassword = !_hidePassword),
-                                icon: Icon(_hidePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined),
-                                tooltip: _hidePassword
-                                    ? AppStrings.showPassword
-                                    : AppStrings.hidePassword,
-                              )),
-                          validator: _validatePassword,
-                          onFieldSubmitted: (_) => _login(),
-                        ),
-                        if (error != null) ...[
-                          const SizedBox(height: AppSizes.spacingMedium),
-                          AuthErrorMessage(error),
-                        ],
-                        const SizedBox(height: AppSizes.spacingLarge),
-                        FilledButton.icon(
-                          onPressed: busy ? null : _login,
-                          icon: busy
-                              ? const SizedBox(
-                                  width: AppSizes.spacingLarge,
-                                  height: AppSizes.spacingLarge,
-                                  child: CircularProgressIndicator())
-                              : const Icon(Icons.login_rounded),
-                          label: Text(
-                              busy ? AppStrings.signingIn : AppStrings.signIn),
-                        ),
-                        const SizedBox(height: AppSizes.spacingMedium),
-                        Wrap(
-                            alignment: WrapAlignment.center,
-                            crossAxisAlignment: WrapCrossAlignment.center,
+      animation: widget.controller,
+      builder: (context, _) {
+        final busy = widget.controller.isBusy;
+        final error = widget.controller.errorMessage;
+        return Scaffold(
+            body: AuthLayout(
+                child: AutofillGroup(
+                    child: Form(
+                        key: _formKey,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Text(AppStrings.dontHaveAccount),
-                              TextButton(
-                                  onPressed: busy
-                                      ? null
-                                      : () {
-                                          widget.controller.clearError();
-                                          Navigator.pushNamed(
-                                              context, AppRoutes.register);
-                                        },
-                                  child:
-                                      const Text(AppStrings.registrationTitle)),
-                            ]),
-                      ],
-                    )),
-              )),
-            ),
-          ))));
-        },
-      );
+                              const AuthBrandHeader(),
+                              const SizedBox(height: AppSizes.spacingXLarge),
+                              Text(AppStrings.loginHeading,
+                                  style:
+                                      Theme.of(context).textTheme.titleLarge),
+                              const SizedBox(height: AppSizes.spacingSmall),
+                              const Text(AppStrings.loginHelp),
+                              const SizedBox(height: AppSizes.spacingLarge),
+                              TextFormField(
+                                  controller: _emailController,
+                                  enabled: !busy,
+                                  keyboardType: TextInputType.emailAddress,
+                                  textInputAction: TextInputAction.next,
+                                  autofillHints: const [
+                                    AutofillHints.username,
+                                    AutofillHints.email
+                                  ],
+                                  autocorrect: false,
+                                  textCapitalization: TextCapitalization.none,
+                                  decoration: const InputDecoration(
+                                      labelText: AppStrings.emailLabel,
+                                      prefixIcon:
+                                          Icon(Icons.alternate_email_rounded)),
+                                  validator: _validateEmail),
+                              const SizedBox(height: AppSizes.spacingMedium),
+                              TextFormField(
+                                  controller: _passwordController,
+                                  enabled: !busy,
+                                  obscureText: _hidePassword,
+                                  enableSuggestions: false,
+                                  autocorrect: false,
+                                  textInputAction: TextInputAction.done,
+                                  autofillHints: const [AutofillHints.password],
+                                  decoration: InputDecoration(
+                                      labelText: AppStrings.passwordLabel,
+                                      prefixIcon: const Icon(
+                                          Icons.lock_outline_rounded),
+                                      suffixIcon: IconButton(
+                                          onPressed: busy
+                                              ? null
+                                              : () => setState(() =>
+                                                  _hidePassword =
+                                                      !_hidePassword),
+                                          icon: Icon(_hidePassword
+                                              ? Icons.visibility_outlined
+                                              : Icons.visibility_off_outlined),
+                                          tooltip: _hidePassword
+                                              ? AppStrings.showPassword
+                                              : AppStrings.hidePassword)),
+                                  validator: _validatePassword,
+                                  onFieldSubmitted: (_) => _login()),
+                              if (error != null) ...[
+                                const SizedBox(height: AppSizes.spacingMedium),
+                                AuthErrorMessage(error)
+                              ],
+                              const SizedBox(height: AppSizes.spacingLarge),
+                              PrimaryAction(
+                                  label: busy
+                                      ? AppStrings.signingIn
+                                      : AppStrings.signIn,
+                                  busy: busy,
+                                  onPressed: _login,
+                                  icon: Icons.arrow_forward_rounded),
+                              const SizedBox(height: AppSizes.spacingMedium),
+                              Wrap(
+                                  alignment: WrapAlignment.center,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    const Text(AppStrings.dontHaveAccount),
+                                    TextButton(
+                                        onPressed: busy
+                                            ? null
+                                            : () {
+                                                widget.controller.clearError();
+                                                Navigator.pushNamed(context,
+                                                    AppRoutes.register);
+                                              },
+                                        child: const Text(
+                                            AppStrings.registrationTitle)),
+                                  ]),
+                            ])))));
+      });
 }

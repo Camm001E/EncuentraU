@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/constants/api_constants.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../matching/presentation/controllers/match_controller.dart';
@@ -16,6 +15,7 @@ import '../../domain/entities/object_report.dart';
 import '../controllers/object_analysis_controller.dart';
 import '../controllers/object_controller.dart';
 import '../widgets/report_form_fields.dart';
+import '../../../../core/presentation/widgets/design_system.dart';
 
 class RegisterObjectPage extends StatefulWidget {
   const RegisterObjectPage(
@@ -54,7 +54,10 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
 
   @override
   void dispose() {
-    if (_preview != null) unawaited(MemoryImage(_preview!).evict());
+    if (_preview != null)
+      unawaited(ResizeImage(MemoryImage(_preview!),
+              width: AppSizes.photoDecodeWidth, policy: ResizeImagePolicy.fit)
+          .evict());
     _preview = null;
     _image = null;
     _data.dispose();
@@ -68,7 +71,10 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
       final image = await widget.pickImage();
       if (image == null || !mounted) return;
       widget.analysisController.reset();
-      if (_preview != null) unawaited(MemoryImage(_preview!).evict());
+      if (_preview != null)
+        unawaited(ResizeImage(MemoryImage(_preview!),
+                width: AppSizes.photoDecodeWidth, policy: ResizeImagePolicy.fit)
+            .evict());
       setState(() {
         _image = image;
         _preview = Uint8List.fromList(image.bytes);
@@ -166,140 +172,200 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
       animation: _changes,
       builder: (context, _) {
         final analysis = widget.analysisController;
-        final busy = _submitting || analysis.isAnalyzing;
+        final busy = _submitting ||
+            widget.controller.isSaving ||
+            analysis.isAnalyzing ||
+            widget.matchController.isGenerating;
+        final images = ReportImageScope.maybeOf(context);
+        final uploading =
+            _savedReport != null && (images?.isBusy(_savedReport!.id) ?? false);
+        final action = uploading
+            ? AppStrings.uploadingPhoto
+            : widget.matchController.isGenerating
+                ? AppStrings.generatingMatches
+                : _submitting
+                    ? AppStrings.savingReport
+                    : _photoFailure
+                        ? AppStrings.retryPhotoUpload
+                        : AppStrings.registerReport;
         return PopScope(
-            canPop: !_submitting,
+            canPop: !busy,
             child: Scaffold(
-              appBar: AppBar(
-                  title: Text(widget.type == ReportType.lost
-                      ? AppStrings.reportLostTitle
-                      : AppStrings.reportFoundTitle)),
-              body: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSizes.spacingMLarge),
-                  child: Center(
-                      child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                              maxWidth: AppSizes.objectFormMaxWidth),
-                          child: Form(
-                              key: _formKey,
-                              child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Text(widget.type == ReportType.lost
-                                        ? AppStrings.lostFormIntro
-                                        : AppStrings.foundFormIntro),
-                                    const SizedBox(
-                                        height: AppSizes.spacingMedium),
-                                    Card(
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(
-                                                AppSizes.spacingMedium),
-                                            child: Column(children: [
-                                              if (_preview != null)
-                                                Image.memory(_preview!,
-                                                    height: AppSizes
-                                                        .imagePreviewHeight,
-                                                    fit: BoxFit.contain,
-                                                    errorBuilder: (_, error,
-                                                            stack) =>
-                                                        const Icon(
-                                                            Icons
-                                                                .broken_image_outlined,
-                                                            size: AppSizes
-                                                                .iconLarge,
-                                                            color: AppColors
-                                                                .textSecondary)),
-                                              if (_preview == null)
-                                                const Icon(
-                                                    Icons
-                                                        .add_photo_alternate_outlined,
-                                                    size: AppSizes.iconLarge,
-                                                    color: AppColors
-                                                        .textSecondary),
-                                              const Text(AppStrings.photoHelp),
-                                              OutlinedButton.icon(
-                                                  onPressed:
-                                                      busy || _photoUploaded
-                                                          ? null
-                                                          : selectImage,
-                                                  icon: const Icon(Icons
-                                                      .photo_library_outlined),
-                                                  label: Text(_preview == null
-                                                      ? AppStrings.selectPhoto
-                                                      : AppStrings
-                                                          .changePhoto)),
+                appBar: AppBar(
+                    title: Text(widget.type == ReportType.lost
+                        ? AppStrings.reportLostTitle
+                        : AppStrings.reportFoundTitle)),
+                body: ContentWidth(
+                    maxWidth: AppSizes.objectFormMaxWidth,
+                    child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(AppSizes.spacingLarge),
+                        child: Form(
+                            key: _formKey,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Text(widget.type == ReportType.lost
+                                      ? AppStrings.lostFormIntro
+                                      : AppStrings.foundFormIntro),
+                                  const SizedBox(height: AppSizes.spacingLarge),
+                                  SectionHeading(
+                                      title: AppStrings.stepLabel(
+                                          1, AppStrings.photoStep),
+                                      subtitle: AppStrings.photoStepHelp),
+                                  Container(
+                                      padding: const EdgeInsets.all(
+                                          AppSizes.spacingMedium),
+                                      decoration: BoxDecoration(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primaryContainer,
+                                          borderRadius: BorderRadius.circular(
+                                              AppSizes.radiusLarge)),
+                                      child: Column(children: [
+                                        if (_preview != null)
+                                          Semantics(
+                                              label: AppStrings.photoReady,
+                                              image: true,
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          AppSizes.radiusSmall),
+                                                  child: Image(
+                                                      image: ResizeImage(MemoryImage(_preview!),
+                                                          width: AppSizes
+                                                              .photoDecodeWidth,
+                                                          policy:
+                                                              ResizeImagePolicy
+                                                                  .fit),
+                                                      height: AppSizes
+                                                          .imagePreviewHeight,
+                                                      fit: BoxFit.contain,
+                                                      errorBuilder: (_, error, stack) =>
+                                                          Icon(Icons.broken_image_outlined,
+                                                              size: AppSizes
+                                                                  .iconLarge,
+                                                              color: Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary)))),
+                                        if (_preview == null)
+                                          Padding(
+                                              padding: const EdgeInsets.all(
+                                                  AppSizes.spacingLarge),
+                                              child: Icon(
+                                                  Icons
+                                                      .add_photo_alternate_outlined,
+                                                  size: AppSizes.iconLarge,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .primary)),
+                                        const SizedBox(
+                                            height: AppSizes.spacingSmall),
+                                        const Text(AppStrings.photoHelp),
+                                        const SizedBox(
+                                            height: AppSizes.spacingSmall),
+                                        SecondaryAction(
+                                            label: _preview == null
+                                                ? AppStrings.selectPhoto
+                                                : AppStrings.changePhoto,
+                                            icon: Icons.photo_library_outlined,
+                                            onPressed: busy || _photoUploaded
+                                                ? null
+                                                : selectImage),
+                                      ])),
+                                  const SizedBox(
+                                      height: AppSizes.spacingXLarge),
+                                  SectionHeading(
+                                      title: AppStrings.stepLabel(
+                                          2, AppStrings.analysisStep),
+                                      subtitle: AppStrings.analysisStepHelp),
+                                  ReportDescriptionField(
+                                      data: _data,
+                                      enabled: !busy && _savedReport == null),
+                                  const SizedBox(
+                                      height: AppSizes.spacingMedium),
+                                  FilledButton.tonalIcon(
+                                      onPressed: busy || _savedReport != null
+                                          ? null
+                                          : analyze,
+                                      icon: const Icon(
+                                          Icons.auto_awesome_outlined),
+                                      label: Text(analysis.isAnalyzing
+                                          ? AppStrings.analyzingImage
+                                          : AppStrings.analyzeWithAi)),
+                                  if (analysis.message != null)
+                                    Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: AppSizes.spacingMedium),
+                                        child: InformationPanel(
+                                            icon: Icons.info_outline,
+                                            child: Text(analysis.message!))),
+                                  if (analysis.analysis case final result?)
+                                    Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: AppSizes.spacingMedium),
+                                        child: InformationPanel(
+                                            child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                              Text(
+                                                  AppStrings.imageAnalysisBadge,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleMedium),
+                                              if (result.objectType != null)
+                                                Text(result.objectType!),
+                                              const SizedBox(
+                                                  height:
+                                                      AppSizes.spacingSmall),
+                                              Wrap(
+                                                  spacing:
+                                                      AppSizes.spacingSmall,
+                                                  runSpacing:
+                                                      AppSizes.spacingSmall,
+                                                  children: [
+                                                    for (final feature in result
+                                                        .visibleFeatures)
+                                                      Chip(label: Text(feature))
+                                                  ]),
+                                              for (final warning
+                                                  in result.warnings)
+                                                Text(warning),
                                             ]))),
-                                    ReportFormFields(
-                                        data: _data,
-                                        enabled: !busy && _savedReport == null),
-                                    FilledButton.tonalIcon(
-                                        onPressed: busy || _savedReport != null
-                                            ? null
-                                            : analyze,
-                                        icon: const Icon(Icons.auto_awesome),
-                                        label: Text(analysis.isAnalyzing
-                                            ? AppStrings.analyzingImage
-                                            : AppStrings.analyzeWithAi)),
-                                    if (analysis.message != null)
-                                      Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical:
-                                                  AppSizes.spacingRegular),
-                                          child: Text(analysis.message!)),
-                                    if (analysis.analysis != null)
-                                      Wrap(
-                                          spacing: AppSizes.spacingSmall,
-                                          children: [
-                                            const Chip(
-                                                label: Text(AppStrings
-                                                    .imageAnalysisBadge)),
-                                            ...analysis
-                                                .analysis!.visibleFeatures
-                                                .map((feature) =>
-                                                    Chip(label: Text(feature))),
-                                          ]),
-                                    const SizedBox(
-                                        height: AppSizes.spacingLarge),
-                                    if (_photoFailure)
-                                      const Text(
-                                          AppStrings.reportSavedPhotoFailed),
-                                    if (_savedReport != null &&
-                                        ReportImageScope.maybeOf(context)
-                                                ?.message(_savedReport!.id) !=
-                                            null)
-                                      Text(ReportImageScope.maybeOf(context)!
-                                          .message(_savedReport!.id)!),
-                                    FilledButton.icon(
-                                        onPressed: busy ? null : submit,
-                                        icon: busy
-                                            ? const SizedBox(
-                                                width: AppSizes.iconMedium,
-                                                height: AppSizes.iconMedium,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                        strokeWidth: AppSizes
-                                                            .strokeWidth))
-                                            : const Icon(
-                                                Icons.check_circle_outline),
-                                        label: Text(_savedReport != null &&
-                                                (ReportImageScope.maybeOf(
-                                                            context)
-                                                        ?.isBusy(
-                                                            _savedReport!.id) ??
-                                                    false)
-                                            ? AppStrings.uploadingPhoto
-                                            : widget.matchController
-                                                    .isGenerating
-                                                ? AppStrings.generatingMatches
-                                                : _submitting
-                                                    ? AppStrings.savingReport
-                                                    : _photoFailure
-                                                        ? AppStrings
-                                                            .retryPhotoUpload
-                                                        : AppStrings
-                                                            .registerReport)),
-                                  ]))))),
-            ));
+                                  const SizedBox(
+                                      height: AppSizes.spacingXLarge),
+                                  ReportFormFields(
+                                      data: _data,
+                                      enabled: !busy && _savedReport == null,
+                                      includeDescription: false,
+                                      firstStep: 3),
+                                  const SizedBox(
+                                      height: AppSizes.spacingXLarge),
+                                  SectionHeading(
+                                      title: AppStrings.stepLabel(
+                                          6, AppStrings.reviewStep),
+                                      subtitle: AppStrings.reviewHelp),
+                                  if (_photoFailure)
+                                    const Padding(
+                                        padding: EdgeInsets.only(
+                                            bottom: AppSizes.spacingMedium),
+                                        child: InformationPanel(
+                                            icon: Icons.cloud_upload_outlined,
+                                            child: Text(AppStrings
+                                                .reportSavedPhotoFailed))),
+                                  if (_savedReport != null &&
+                                      images?.message(_savedReport!.id) != null)
+                                    Padding(
+                                        padding: const EdgeInsets.only(
+                                            bottom: AppSizes.spacingMedium),
+                                        child: Text(images!
+                                            .message(_savedReport!.id)!)),
+                                  PrimaryAction(
+                                      label: action,
+                                      busy: busy,
+                                      onPressed: submit,
+                                      icon: Icons.check_circle_outline),
+                                  const SizedBox(height: AppSizes.spacingLarge),
+                                ]))))));
       });
 }

@@ -51,6 +51,7 @@ abstract final class ApiConstants {
   static const String statusParameter = 'status';
   static const String levelParameter = 'level';
   static const int defaultPageSize = 20;
+  static const int countPageSize = 1;
   static const int maxPageSize = 100;
   static const int maxPercentage = 100;
   static const int objectTypeMaxLength = 200;

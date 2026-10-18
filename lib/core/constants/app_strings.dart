@@ -1,6 +1,80 @@
 import 'app_validation.dart';
 
 abstract final class AppStrings {
+  static const navHome = 'Inicio';
+  static const navProfile = 'Perfil';
+  static const brandEyebrow = 'CONECTAMOS LO QUE IMPORTA';
+  static const authHeadline =
+      'Cada objeto tiene una historia.\nAyudemos a que continúe.';
+  static const authDescription =
+      'Un punto de encuentro para lo que perdiste y una oportunidad de ayudar con lo que encontraste.';
+  static const authTrust = 'Tu comunidad. Tus datos protegidos.';
+  static const loginHeading = 'Qué bueno verte de nuevo';
+  static const loginHelp = 'Inicia sesión para continuar tu búsqueda.';
+  static const homeHeadline = 'Lo importante encuentra su camino.';
+  static const homeEyebrow = 'TU PUNTO DE ENCUENTRO';
+  static const summaryTitle = 'Tu actividad, de un vistazo';
+  static const activeReports = 'Reportes activos';
+  static const lostReports = 'Objetos perdidos';
+  static const foundReports = 'Objetos encontrados';
+  static const availableMatches = 'Coincidencias disponibles';
+  static const recentReports = 'Tus últimos reportes';
+  static const profileTitle = 'Tu espacio en EncuentraU';
+  static const profileDescription =
+      'Esta información pertenece a tu cuenta universitaria.';
+  static const roleLabel = 'Rol';
+  static const studentRole = 'Estudiante';
+  static const adminRole = 'Administrador';
+  static const accountActive = 'Cuenta activa';
+  static const accountInactive = 'Cuenta inactiva';
+  static const emptyTitle = 'Un nuevo comienzo';
+  static const errorTitle = 'Vamos a intentarlo otra vez';
+  static const loadingContent = 'Cargando información';
+  static const reportCollectionSubtitle =
+      'Cada detalle acerca un objeto a su historia.';
+  static const reportCollectionHeadline = 'El recorrido de tus objetos';
+  static const matchListHeadline = 'Explora tus coincidencias';
+  static const highShort = 'Alta';
+  static const possibleShort = 'Posible';
+  static const lowShort = 'Baja';
+  static const matchListSubtitle =
+      'Explora la evidencia que conecta tus reportes.';
+  static const estimatedCompatibility = 'Compatibilidad estimada';
+  static const ownershipNotice =
+      'Esta puntuación compara la evidencia disponible. La propiedad debe validarse antes de entregar el objeto.';
+  static const identityEvidence = 'Identidad del objeto';
+  static const contextEvidence = 'Contexto del hallazgo';
+  static const pointsLegend = 'Puntos obtenidos / máximo evaluable';
+  static const warningHelp =
+      'Detalles que conviene revisar al comparar los objetos.';
+  static const comparisonTitle = 'Dos miradas, una posible conexión';
+  static const comparisonEyebrow = 'COMPARACIÓN DE EVIDENCIAS';
+  static const candidatePhotoLabel = 'Posible coincidencia';
+  static const compareConnector = 'Comparación entre ambos reportes';
+  static const openMatch = 'Explorar coincidencia';
+  static const photoStep = 'Fotografía';
+  static const analysisStep = 'Análisis de IA';
+  static const objectStep = 'Información del objeto';
+  static const locationStep = 'Lugar y fecha';
+  static const privateStep = 'Solo para ti';
+  static const reviewStep = 'Revisión y publicación';
+  static const privateHelp =
+      'Este detalle es privado. No se muestra a otras personas en las coincidencias.';
+  static const photoStepHelp =
+      'Una imagen clara ayuda a comparar los detalles del objeto.';
+  static const analysisStepHelp =
+      'La IA sugiere características. Tú decides qué información conservar o corregir.';
+  static const reviewHelp =
+      'Revisa tus datos. Guardaremos el reporte y la fotografía antes de buscar coincidencias.';
+  static const photoReady = 'Fotografía seleccionada';
+  static const filterType = 'Tipo de reporte';
+  static const filterStatus = 'Estado del reporte';
+  static String greeting(String name) =>
+      'Hola, ${name.trim().split(RegExp(r"\s+")).first}';
+  static String scoreSemantics(int percentage) =>
+      '$estimatedCompatibility: $percentage por ciento';
+  static String photoSemantics(String label) => 'Fotografía: $label';
+  static String stepLabel(int step, String title) => '$step. $title';
   static const reportPhoto = 'Fotografía del reporte';
   static const noReportPhoto = 'Sin fotografía';
   static const photoUnavailable = 'No fue posible cargar la fotografía.';
@@ -124,8 +198,7 @@ abstract final class AppStrings {
       'No fue posible abrir la fotografía seleccionada.';
 
   static const String networkError =
-      'No fue posible conectar con el servidor. Verifica que FastAPI esté '
-      'encendido.';
+      'No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.';
 
   static const String analysisTimeout =
       'El análisis tardó demasiado. Intenta nuevamente.';
@@ -235,7 +308,7 @@ abstract final class AppStrings {
   static const matchingFactor = 'Coincide';
   static const partialFactor = 'Parcial';
   static const differentFactor = 'Diferente';
-  static const unknownFactor = 'No evaluado';
+  static const unknownFactor = 'Sin información';
   static const compatible = 'Tipos compatibles';
   static const incompatible = 'Tipos incompatibles';
   static const categoryLabel = 'Categoría';
@@ -274,7 +347,8 @@ abstract final class AppStrings {
   static const defaultCategory = 'electronica';
   static String generatedCount(int count) =>
       '$count coincidencias para este reporte.';
-  static String resultCount(int count) => '$count resultados';
+  static String resultCount(int count) =>
+      count == 1 ? '1 resultado' : '$count resultados';
   static String percentage(num value) => '$value%';
   static String factorPoints(num score, num maximum) => '$score / $maximum';
 }
