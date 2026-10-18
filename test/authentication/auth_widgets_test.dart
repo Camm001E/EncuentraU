@@ -104,6 +104,12 @@ void main() {
     final requests = <String>[];
     final client = MockClient((request) async {
       requests.add(request.url.path);
+      if (request.url.path == ApiConstants.myDeliveriesPath) {
+        expect(request.headers['authorization'], 'Bearer $testToken');
+        return http.Response(
+            jsonEncode({'items': [], 'total': 0, 'limit': 1, 'offset': 0}),
+            200);
+      }
       if (request.url.path == ApiConstants.myConversationsPath) {
         expect(request.headers['authorization'], 'Bearer $testToken');
         return emptyReports();
@@ -132,12 +138,14 @@ void main() {
     await fillLogin(tester);
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
-    expect(requests, [
+    expect(requests.where((p) => p != ApiConstants.myDeliveriesPath), [
       ApiConstants.authLoginPath,
       ApiConstants.authMePath,
       ApiConstants.myReportsPath,
       ApiConstants.myConversationsPath
     ]);
+    expect(requests.where((p) => p == ApiConstants.myDeliveriesPath),
+        hasLength(5));
     expect(storage.token, testToken);
     expect(find.byType(HomePage), findsOneWidget);
     expect(

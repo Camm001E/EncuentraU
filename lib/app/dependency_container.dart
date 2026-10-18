@@ -1,4 +1,9 @@
 import '../features/objects/domain/repositories/object_analysis_repository.dart';
+import '../features/deliveries/data/datasources/delivery_remote_data_source.dart';
+import '../features/deliveries/data/repositories/delivery_repository_impl.dart';
+import '../features/deliveries/domain/repositories/delivery_repository.dart';
+import '../features/deliveries/domain/usecases/deliveries.dart';
+import '../features/deliveries/presentation/controllers/delivery_controller.dart';
 import '../features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../features/dashboard/domain/usecases/get_dashboard_summary.dart';
 import '../features/dashboard/data/repositories/dashboard_repository_impl.dart';
@@ -56,6 +61,8 @@ import '../features/messaging/presentation/controllers/chat_controller.dart';
 class DependencyContainer {
   DependencyContainer._(
       {required this.objectController,
+      required this.deliveryController,
+      required this.adminDeliveryController,
       required this.dashboardController,
       required this.reportImageController,
       required this.matchController,
@@ -85,6 +92,8 @@ class DependencyContainer {
         adminClaimsController.clear();
         adminSummaryController.clear();
         conversationsController.clear();
+        deliveryController.clear();
+        adminDeliveryController.clear();
         for (final chat in _chats) {
           chat.clear();
         }
@@ -96,6 +105,7 @@ class DependencyContainer {
         authController.expireSession(inactive: reason == ApiFailure.forbidden));
   }
   final ObjectController objectController;
+  final DeliveryController deliveryController, adminDeliveryController;
   final DashboardController dashboardController;
   final ReportImageController reportImageController;
   final MatchController matchController;
@@ -130,6 +140,7 @@ class DependencyContainer {
       ClaimRepository? claimRepository,
       AdminClaimRepository? adminClaimRepository,
       ConversationRepository? conversationRepository,
+      DeliveryRepository? deliveryRepository,
       ObjectAnalysisRepository? analysisRepository}) {
     final sharedClient = client ?? http.Client();
     final session = SessionManager(tokenStorage ?? const SecureTokenStorage(),
@@ -151,7 +162,30 @@ class DependencyContainer {
         AuthRepositoryImpl(AuthRemoteDataSource(client: sharedClient), session);
     final dashboard = DashboardController(GetDashboardSummary(
         dashboardRepository ?? DashboardRepositoryImpl(objects, matches)));
-    return DependencyContainer._(
+    final deliveries = deliveryRepository ??
+        DeliveryRepositoryImpl(DeliveryRemoteDataSource(api));
+    late final DependencyContainer result;
+    DeliveryController deliveryController(bool admin) => DeliveryController(
+        admin: admin,
+        listMine: ListMyDeliveries(deliveries),
+        get: GetDelivery(deliveries),
+        confirm: ConfirmDelivery(deliveries),
+        dispute: OpenDeliveryDispute(deliveries),
+        listAdmin: ListAdminDeliveries(deliveries),
+        getAdmin: GetAdminDelivery(deliveries),
+        complete: CompleteDelivery(deliveries),
+        reopen: ReopenDelivery(deliveries),
+        onChanged: () {
+          inbox.refresh();
+          if (!admin) {
+            result.objectController.refresh();
+            dashboard.refresh();
+          }
+        });
+    final studentDelivery = deliveryController(false);
+    result = DependencyContainer._(
+        deliveryController: studentDelivery,
+        adminDeliveryController: deliveryController(true),
         dashboardController: dashboard,
         ownedClient: client == null ? sharedClient : null,
         session: session,
@@ -174,6 +208,7 @@ class DependencyContainer {
             list: ListMessages(conversations),
             send: SendMessage(conversations),
             read: MarkConversationRead(conversations),
+            onRefreshed: (id) => studentDelivery.loadDetail(id, silent: true),
             onActivity: inbox.refresh),
         reportImageController: ReportImageController(
             upload: UploadReportImage(imageRepository),
@@ -201,6 +236,7 @@ class DependencyContainer {
             analysisRepository ??
                 ObjectAnalysisRepositoryImpl(
                     ObjectAnalysisRemoteDataSource(client: sharedClient)))));
+    return result;
   }
 
   void dispose() {
@@ -221,6 +257,8 @@ class DependencyContainer {
     }
     _chats.clear();
     conversationsController.dispose();
+    deliveryController.dispose();
+    adminDeliveryController.dispose();
     _ownedClient?.close();
   }
 }

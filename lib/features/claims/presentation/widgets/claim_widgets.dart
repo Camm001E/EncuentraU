@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../deliveries/presentation/widgets/delivery_widgets.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -123,6 +124,7 @@ class ClaimStatePanel extends StatelessWidget {
         ],
         if (claim.status == ClaimStatus.approved &&
             claim.conversationId != null) ...[
+          DeliveryProgressLink(conversationId: claim.conversationId!),
           const SizedBox(height: AppSizes.spacingMedium),
           PrimaryAction(
               label: AppStrings.openChat,

@@ -1,4 +1,5 @@
 abstract final class AppSizes {
+  static const deliveryPanelMaxHeight = 260.0;
   static const double chatCompactHeight = 520;
   static const double chatMinimumBodyHeight = 120;
   static const int chatCompactInputLines = 2;

@@ -17,7 +17,8 @@ class ChatController extends ChangeNotifier {
       required MarkConversationRead read,
       this.pollInterval = AppDurations.chatPolling,
       this.messageId = newClientMessageId,
-      this.onActivity})
+      this.onActivity,
+      this.onRefreshed})
       : _get = get,
         _list = list,
         _send = send,
@@ -29,6 +30,7 @@ class ChatController extends ChangeNotifier {
   final Duration pollInterval;
   final String Function() messageId;
   final void Function()? onActivity;
+  final Future<void> Function(String)? onRefreshed;
   Timer? _timer;
   bool _visible = false, _disposed = false, _fetching = false;
   int _epoch = 0;
@@ -88,7 +90,14 @@ class ChatController extends ChangeNotifier {
       if (!_current(epoch)) return;
       final view = values[0] as Conversation, page = values[1] as MessagePage;
       final initial = conversation == null;
+      final becameClosed = conversation?.status != ConversationStatus.closed &&
+          view.status == ConversationStatus.closed;
       conversation = view;
+      if (view.status == ConversationStatus.closed) {
+        _timer?.cancel();
+        _timer = null;
+      }
+      if (becameClosed) onActivity?.call();
       final gap = !initial &&
           _messages.isNotEmpty &&
           page.nextCursor != null &&
@@ -107,6 +116,7 @@ class ChatController extends ChangeNotifier {
           if (_current(epoch)) message = apiMessage(error);
         }
       }
+      if (_current(epoch) && onRefreshed != null) await onRefreshed!(id);
     } catch (error) {
       if (_current(epoch)) {
         message = apiMessage(error);

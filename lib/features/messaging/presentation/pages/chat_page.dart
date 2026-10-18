@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../app/routes.dart';
+import '../../../deliveries/presentation/widgets/delivery_widgets.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -171,6 +173,17 @@ class _ChatPageState extends State<ChatPage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               if (!compact)
+                                DeliveryProgressLink(
+                                    conversationId: widget.conversationId,
+                                    inChat: true),
+                              if (compact)
+                                TextButton(
+                                    onPressed: () => Navigator.pushNamed(
+                                        context, AppRoutes.deliveryDetail,
+                                        arguments: widget.conversationId),
+                                    child:
+                                        const Text(AppStrings.deliveryProcess)),
+                              if (!compact)
                                 Padding(
                                     padding: const EdgeInsets.all(
                                         AppSizes.spacingMedium),
@@ -226,6 +239,12 @@ class _ChatPageState extends State<ChatPage> {
                                               const Icon(Icons.refresh_rounded))
                                     ])),
                               Expanded(child: messages()),
+                              if (conversation.status ==
+                                  ConversationStatus.closed)
+                                const Padding(
+                                    padding:
+                                        EdgeInsets.all(AppSizes.spacingMedium),
+                                    child: Text(AppStrings.chatReadOnly)),
                               const Divider(height: 1),
                               composer(compact),
                             ]);

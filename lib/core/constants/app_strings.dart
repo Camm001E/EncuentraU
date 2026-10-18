@@ -1,6 +1,65 @@
 import 'app_validation.dart';
 
 abstract final class AppStrings {
+  static const deliveries = 'Entregas';
+  static const myDeliveries = 'Mis entregas';
+  static const deliveryProcess = 'Proceso de entrega';
+  static const coordinatingDelivery = 'Coordinando entrega';
+  static const awaitingConfirmations = 'Esperando confirmaciones';
+  static const awaitingAdmin = 'Esperando validación';
+  static const deliveryDisputed = 'En disputa';
+  static const deliveryCompleted = 'Caso cerrado';
+  static const deliveryClosedMessage = 'Objeto entregado y caso cerrado';
+  static const deliveryClosedHelp =
+      'La entrega fue validada. Los reportes están resueltos y el chat conserva su historial en modo lectura.';
+  static const confirmCustodianDelivery = 'Confirmar que entregué el objeto';
+  static const confirmClaimantDelivery = 'Confirmar que recibí el objeto';
+  static const confirmPhysicalDelivery =
+      'Confirma únicamente después del intercambio físico. Esta acción registra tu confirmación; la otra persona y un administrador también deben validar la entrega.';
+  static const myDeliveryConfirmation = 'Tu confirmación está registrada';
+  static const otherDeliveryConfirmation = 'La otra persona ya confirmó';
+  static const waitingOtherConfirmation =
+      'Falta la confirmación de la otra persona';
+  static const custodianConfirmed = 'Custodio confirmó entrega';
+  static const claimantConfirmed = 'Reclamante confirmó recepción';
+  static const reportDeliveryProblem = 'Reportar un problema';
+  static const disputeReason = 'Motivo del problema';
+  static const disputeHelp =
+      'Explica qué ocurrió con la entrega. No incluyas contraseñas, información bancaria ni datos personales innecesarios. El administrador revisará el caso; el chat seguirá disponible.';
+  static const disputeValidation = 'Escribe un motivo de 10 a 2000 caracteres.';
+  static const deliveryHistory = 'Historial de la entrega';
+  static const deliveryCreated = 'Entrega habilitada';
+  static const deliveryReopened = 'Administrador devolvió a coordinación';
+  static const deliveryAdminCompleted = 'Administrador validó la entrega';
+  static const completeDelivery = 'Validar entrega';
+  static const completeDeliveryHelp =
+      'Se resolverán ambos reportes y se cerrará el chat. El historial permanecerá disponible para sus participantes.';
+  static const reopenDelivery = 'Devolver a coordinación';
+  static const reopenDeliveryHelp =
+      'Las confirmaciones actuales se reiniciarán para coordinar un nuevo intercambio. El historial anterior se conservará.';
+  static const deliveryAdminNote = 'Nota administrativa';
+  static const deliveryNoteHelp =
+      'Esta nota solo será visible para administradores.';
+  static const deliveryNoteValidation =
+      'Escribe una nota de 1 a 2000 caracteres.';
+  static const noDeliveries = 'Todavía no hay entregas';
+  static const noDeliveriesHelp =
+      'Las reclamaciones aprobadas habilitan el proceso de entrega y su chat privado.';
+  static const deliveryDetails = 'Ver proceso de entrega';
+  static const deliveryCasesInProgress = 'Casos en proceso';
+  static const deliveryCasesCompleted = 'Casos completados';
+  static const chatReadOnly = 'Chat en modo lectura';
+  static const chatMetadataOnly =
+      'Privacidad del chat: solo se muestran cantidad de mensajes y última actividad. Su contenido pertenece a los participantes.';
+  static const evidenceProtected =
+      'Evidencia protegida: este reporte y su fotografía no pueden cambiar mientras exista una reclamación pendiente o aprobada.';
+  static const reportResolvedByDelivery =
+      'Este reporte está resuelto. Si terminó mediante una entrega validada, puedes consultar el cierre y el historial en Mis entregas.';
+  static String confirmationCount(int count) => '$count de 2 confirmaciones';
+  static String deliveryMessageCount(int count) =>
+      count == 1 ? '1 mensaje conservado' : '$count mensajes conservados';
+  static String deliveryMetric(String label, int count) => '$label: $count';
+  static String deliveryEventWhen(String date, String time) => '$date · $time';
   // Ownership review and approved private conversations.
   static const permissionDenied =
       'No tienes permiso para realizar esta acción.';
