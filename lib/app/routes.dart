@@ -1,4 +1,8 @@
 abstract final class AppRoutes {
+  static const deliveries = '/deliveries';
+  static const deliveryDetail = '/deliveries/detail';
+  static const adminDeliveries = '/admin/deliveries';
+  static const adminDeliveryDetail = '/admin/deliveries/detail';
   static const claims = '/claims';
   static const claimDetail = '/claims/detail';
   static const submitClaim = '/claims/submit';

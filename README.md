@@ -261,7 +261,7 @@ Un 401 elimina credenciales y todos los datos privados de reclamaciones,
 administración, conversaciones, mensajes e imágenes. Un 403 de permisos conserva
 la sesión; un 403 de cuenta inactiva la elimina. Las pantallas no interpretan
 HTML ni muestran errores internos del servidor. Los mensajes no admiten adjuntos,
-edición o eliminación. La entrega final del objeto todavía no está implementada.
+edición o eliminación. El proceso de entrega y cierre se describe a continuación.
 
 Prueba real opcional con PostgreSQL, FastAPI y `emulator-5554` ya activos:
 
@@ -276,3 +276,42 @@ prueba en PostgreSQL, pero no exporta contraseñas ni JWT. Reutiliza el análisi
 Gemini anterior sin nuevas llamadas. Las capturas, logs y resultados permanecen
 en `build/claims-chat-e2e/`, ignorado por Git. No usar credenciales reales con este
 recorrido de desarrollo.
+
+### Entrega física y cierre del caso
+
+Cada reclamación aprobada tiene un proceso de entrega persistente. El chat muestra
+su estado y una línea de tiempo accesible. El custodio confirma que entregó y el
+reclamante que recibió, únicamente después del intercambio físico. Flutter envía
+la acción sin rol ni identidad; FastAPI determina al participante desde el JWT.
+Ambas confirmaciones llevan el caso a validación administrativa.
+
+El administrador dispone de **Entregas**, con filtros, paginación y prioridad para
+disputas. Revisa fotografías, coincidencia, evidencia y confirmaciones. Del chat
+solo recibe cantidad de mensajes y fecha de actividad; nunca su contenido.
+Validar resuelve ambos reportes y deja la conversación en modo lectura. El cierre
+se conserva al reiniciar la app. Los reportes y fotografías protegidos por una
+reclamación no pueden modificarse; el permiso procede de `evidence_locked`.
+
+Antes del cierre, cualquier participante puede reportar un problema. El
+administrador puede devolver una disputa o un caso pendiente de validación a
+coordinación. Las confirmaciones actuales se reinician, pero el historial conserva
+todos los eventos. Las notas administrativas permanecen privadas.
+
+El módulo `features/deliveries` separa entidades, puertos, casos de uso, modelos,
+datasource, repositorio, controladores y presentación. Reutiliza el cliente Bearer,
+la caché privada, limpieza ante 401 y paleta pastel. Las cifras del inicio y perfil
+provienen de totales paginados del backend, sin inferirlas de páginas incompletas.
+El polling consulta avances únicamente mientras el chat está visible; un chat
+cerrado conserva mensajes y deshabilita el envío.
+
+Prueba real de los flujos normal y de disputa, sin llamadas nuevas a Gemini:
+
+```powershell
+python -X utf8 tool/run_delivery_e2e.py --backend-root "<backend>" --image-a "<foto-A.png>" --image-b "<foto-B.png>" --adb "<Android-SDK>/platform-tools/adb.exe"
+```
+
+El administrador de prueba se crea mediante la CLI segura. Las credenciales se
+mantienen en memoria y se retiran del caché privado del dispositivo después de
+consumirlas. Los casos se conservan en PostgreSQL; capturas y resultados quedan
+únicamente en `build/delivery-e2e/`, fuera de Git. No se incluyen datos E2E ni
+secretos en los archivos del proyecto.

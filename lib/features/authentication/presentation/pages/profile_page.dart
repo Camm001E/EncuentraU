@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../deliveries/presentation/widgets/delivery_widgets.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -72,6 +73,7 @@ class ProfilePage extends StatelessWidget {
                             subtitle: SelectableText(item.$2)),
                       const SizedBox(height: AppSizes.spacingXLarge),
                       if (user.role == UserRole.student) ...[
+                        const DeliveryTotals(),
                         SecondaryAction(
                             label: AppStrings.myClaims,
                             icon: Icons.fact_check_outlined,

@@ -1,6 +1,21 @@
 import '../domain/ownership_limits.dart';
 
 abstract final class ApiConstants {
+  static const deliveriesPath = '/api/v1/deliveries';
+  static const myDeliveriesPath = '$deliveriesPath/me';
+  static const adminDeliveriesPath = '/api/v1/admin/deliveries';
+  static String deliveryPath(String id) =>
+      '$deliveriesPath/${Uri.encodeComponent(id)}';
+  static String conversationDeliveryPath(String id) =>
+      '${conversationPath(id)}/delivery';
+  static String confirmDeliveryPath(String id) => '${deliveryPath(id)}/confirm';
+  static String disputeDeliveryPath(String id) => '${deliveryPath(id)}/dispute';
+  static String adminDeliveryPath(String id) =>
+      '$adminDeliveriesPath/${Uri.encodeComponent(id)}';
+  static String completeDeliveryPath(String id) =>
+      '${adminDeliveryPath(id)}/complete';
+  static String reopenDeliveryPath(String id) =>
+      '${adminDeliveryPath(id)}/reopen';
   static const claimsPath = '/api/v1/claims';
   static const myClaimsPath = '$claimsPath/me';
   static const adminClaimsPath = '/api/v1/admin/claims';

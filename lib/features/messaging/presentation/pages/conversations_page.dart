@@ -9,6 +9,7 @@ import '../../../../core/presentation/widgets/page_visibility.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../objects/presentation/widgets/report_photo.dart';
 import '../controllers/conversations_controller.dart';
+import '../../domain/entities/conversation.dart';
 import '../widgets/message_bubble.dart';
 
 class ConversationsPage extends StatelessWidget {
@@ -99,6 +100,12 @@ class ConversationsPage extends StatelessWidget {
                                                             Text(conversation
                                                                 .report
                                                                 .objectType),
+                                                            if (conversation
+                                                                    .status ==
+                                                                ConversationStatus
+                                                                    .closed)
+                                                              const Text(AppStrings
+                                                                  .chatReadOnly),
                                                             const SizedBox(
                                                                 height: AppSizes
                                                                     .spacingSmall),

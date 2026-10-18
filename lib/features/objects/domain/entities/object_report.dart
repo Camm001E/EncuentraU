@@ -37,8 +37,10 @@ class ObjectReport {
       this.shape,
       this.privateFeature,
       this.imageAnalysis,
+      this.evidenceLocked = false,
       this.image});
   final String id, objectType, category, description, location;
+  final bool evidenceLocked;
   final ReportType reportType;
   final ReportStatus status;
   final String? primaryColor, brand, shape, privateFeature;

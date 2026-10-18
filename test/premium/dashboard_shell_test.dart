@@ -63,6 +63,8 @@ void main() {
       if (request.url.path == ApiConstants.authMePath)
         return jsonResponse(userJson);
       final query = request.url.queryParameters;
+      if (request.url.path == ApiConstants.myDeliveriesPath)
+        return jsonResponse({...pageJson([]), 'limit': 1});
       if (query['limit'] == '1') {
         queries.add(query);
         final total = request.url.path == ApiConstants.myMatchesPath
