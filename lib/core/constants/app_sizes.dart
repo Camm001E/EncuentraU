@@ -16,6 +16,10 @@ abstract final class AppSizes {
   static const double formMaxWidth = 520;
   static const double objectFormMaxWidth = 720;
   static const double imagePreviewHeight = 240;
+  static const double reportPhotoThumbnail = 72;
+  static const double matchPhotoHeight = 160;
+  static const double photoComparisonBreakpoint = 600;
+  static const int photoDecodeWidth = 1024;
 
   static const double iconSmall = 16;
   static const double iconMedium = 24;

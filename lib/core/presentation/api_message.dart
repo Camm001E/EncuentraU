@@ -14,5 +14,7 @@ String apiMessage(Object error) {
     ApiFailure.timeout => AppStrings.apiTimeout,
     ApiFailure.invalidResponse => AppStrings.apiInvalidResponse,
     ApiFailure.storage => AppStrings.secureStorageError,
+    ApiFailure.imageTooLarge => AppStrings.reportPhotoTooLarge,
+    ApiFailure.unsupportedImage => AppStrings.reportPhotoUnsupported,
   };
 }

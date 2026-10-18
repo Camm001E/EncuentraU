@@ -1,4 +1,5 @@
 import 'object_image_analysis.dart';
+import 'report_image.dart';
 
 enum ReportType { lost, found }
 
@@ -35,7 +36,8 @@ class ObjectReport {
       this.brand,
       this.shape,
       this.privateFeature,
-      this.imageAnalysis});
+      this.imageAnalysis,
+      this.image});
   final String id, objectType, category, description, location;
   final ReportType reportType;
   final ReportStatus status;
@@ -43,6 +45,7 @@ class ObjectReport {
   final List<String> secondaryColors;
   final DateTime eventDate, createdAt, updatedAt;
   final StoredImageAnalysis? imageAnalysis;
+  final ReportImageReference? image;
 }
 
 /// Creation carries no ID, owner, status, audit dates or photo/file data.

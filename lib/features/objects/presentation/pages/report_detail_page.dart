@@ -1,3 +1,4 @@
+import '../widgets/report_photo.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -100,6 +101,8 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(AppSizes.spacingMLarge),
                     children: [
+                      ReportPhoto(image: report.image),
+                      const SizedBox(height: AppSizes.spacingMedium),
                       Text(report.objectType,
                           style: Theme.of(context).textTheme.headlineSmall),
                       Wrap(spacing: AppSizes.spacingSmall, children: [
