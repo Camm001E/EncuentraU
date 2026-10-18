@@ -1,4 +1,7 @@
 import '../features/objects/presentation/widgets/report_image_scope.dart';
+import '../features/deliveries/presentation/widgets/delivery_scope.dart';
+import '../features/deliveries/presentation/pages/deliveries_page.dart';
+import '../features/deliveries/presentation/pages/delivery_detail_page.dart';
 import 'package:flutter/material.dart';
 import '../core/constants/app_strings.dart';
 import '../core/theme/app_theme.dart';
@@ -76,7 +79,8 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
           auth: dependencies.authController,
           claims: dependencies.adminClaimsController,
           summary: dependencies.adminSummaryController,
-          initialIndex: index == 3 ? 2 : 0)
+          deliveries: dependencies.adminDeliveryController,
+          initialIndex: index == 3 ? 3 : 0)
       : AppShell(
           objects: dependencies.objectController,
           auth: dependencies.authController,
@@ -92,79 +96,106 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
   }
 
   @override
-  Widget build(BuildContext context) => ReportImageScope(
-      controller: dependencies.reportImageController,
-      child: MaterialApp(
-          navigatorKey: _navigator,
-          navigatorObservers: [_routeObserver],
-          title: AppStrings.appName,
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.light,
-          initialRoute: AppRoutes.session,
-          routes: {
-            AppRoutes.session: (_) =>
-                SessionPage(controller: dependencies.authController),
-            AppRoutes.login: (_) =>
-                LoginPage(controller: dependencies.authController),
-            AppRoutes.register: (_) =>
-                RegisterPage(controller: dependencies.authController),
-            AppRoutes.home: (_) => protected(() => shell(0)),
-            AppRoutes.objects: (_) => protected(() => shell(1)),
-            AppRoutes.profile: (_) => protected(() => shell(3)),
-            AppRoutes.registerLost: (_) => protected(() => RegisterObjectPage(
-                type: ReportType.lost,
-                controller: dependencies.objectController,
-                analysisController: dependencies.objectAnalysisController,
-                matchController: dependencies.matchController)),
-            AppRoutes.registerFound: (_) => protected(() => RegisterObjectPage(
-                type: ReportType.found,
-                controller: dependencies.objectController,
-                analysisController: dependencies.objectAnalysisController,
-                matchController: dependencies.matchController)),
-            AppRoutes.reportDetail: (context) => protected(() => withId(
-                context,
-                (id) => ReportDetailPage(
-                    reportId: id,
-                    controller: dependencies.objectController,
-                    matchController: dependencies.matchController))),
-            AppRoutes.editReport: (context) => protected(() => withId(
-                context,
-                (id) => EditReportPage(
-                    reportId: id, controller: dependencies.objectController))),
-            AppRoutes.matches: (_) => protected(() => shell(2)),
-            AppRoutes.matchDetail: (context) => protected(() => withId(
-                context,
-                (id) => MatchDetailPage(
-                    matchId: id,
-                    controller: dependencies.matchController,
-                    claimsController: dependencies.claimsController))),
-            AppRoutes.claims: (_) => protected(
-                () => ClaimsPage(controller: dependencies.claimsController)),
-            AppRoutes.submitClaim: (context) => protected(() => withId(
-                context,
-                (id) => ClaimFormPage(
-                    matchId: id, controller: dependencies.claimsController))),
-            AppRoutes.claimDetail: (context) => protected(() => withId(
-                context,
-                (id) => ClaimDetailPage(
-                    claimId: id, controller: dependencies.claimsController))),
-            AppRoutes.adminClaims: (_) => adminProtected(() => AdminClaimsPage(
-                controller: dependencies.adminClaimsController)),
-            AppRoutes.adminClaimDetail: (context) => adminProtected(() =>
-                withId(
+  Widget build(BuildContext context) => DeliveryScope(
+      student: dependencies.deliveryController,
+      admin: dependencies.adminDeliveryController,
+      child: ReportImageScope(
+          controller: dependencies.reportImageController,
+          child: MaterialApp(
+              navigatorKey: _navigator,
+              navigatorObservers: [_routeObserver],
+              title: AppStrings.appName,
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.light,
+              initialRoute: AppRoutes.session,
+              routes: {
+                AppRoutes.deliveries: (_) => protected(() => DeliveriesPage(
+                    controller: dependencies.deliveryController)),
+                AppRoutes.deliveryDetail: (context) => protected(() => withId(
                     context,
-                    (id) => AdminClaimDetailPage(
+                    (id) => DeliveryDetailPage(
+                        id: id, controller: dependencies.deliveryController))),
+                AppRoutes.adminDeliveries: (_) => adminProtected(() =>
+                    DeliveriesPage(
+                        controller: dependencies.adminDeliveryController)),
+                AppRoutes.adminDeliveryDetail: (context) => adminProtected(() =>
+                    withId(
+                        context,
+                        (id) => DeliveryDetailPage(
+                            id: id,
+                            controller: dependencies.adminDeliveryController))),
+                AppRoutes.session: (_) =>
+                    SessionPage(controller: dependencies.authController),
+                AppRoutes.login: (_) =>
+                    LoginPage(controller: dependencies.authController),
+                AppRoutes.register: (_) =>
+                    RegisterPage(controller: dependencies.authController),
+                AppRoutes.home: (_) => protected(() => shell(0)),
+                AppRoutes.objects: (_) => protected(() => shell(1)),
+                AppRoutes.profile: (_) => protected(() => shell(3)),
+                AppRoutes.registerLost: (_) => protected(() =>
+                    RegisterObjectPage(
+                        type: ReportType.lost,
+                        controller: dependencies.objectController,
+                        analysisController:
+                            dependencies.objectAnalysisController,
+                        matchController: dependencies.matchController)),
+                AppRoutes.registerFound: (_) => protected(() =>
+                    RegisterObjectPage(
+                        type: ReportType.found,
+                        controller: dependencies.objectController,
+                        analysisController:
+                            dependencies.objectAnalysisController,
+                        matchController: dependencies.matchController)),
+                AppRoutes.reportDetail: (context) => protected(() => withId(
+                    context,
+                    (id) => ReportDetailPage(
+                        reportId: id,
+                        controller: dependencies.objectController,
+                        matchController: dependencies.matchController))),
+                AppRoutes.editReport: (context) => protected(() => withId(
+                    context,
+                    (id) => EditReportPage(
+                        reportId: id,
+                        controller: dependencies.objectController))),
+                AppRoutes.matches: (_) => protected(() => shell(2)),
+                AppRoutes.matchDetail: (context) => protected(() => withId(
+                    context,
+                    (id) => MatchDetailPage(
+                        matchId: id,
+                        controller: dependencies.matchController,
+                        claimsController: dependencies.claimsController))),
+                AppRoutes.claims: (_) => protected(() =>
+                    ClaimsPage(controller: dependencies.claimsController)),
+                AppRoutes.submitClaim: (context) => protected(() => withId(
+                    context,
+                    (id) => ClaimFormPage(
+                        matchId: id,
+                        controller: dependencies.claimsController))),
+                AppRoutes.claimDetail: (context) => protected(() => withId(
+                    context,
+                    (id) => ClaimDetailPage(
                         claimId: id,
-                        controller: dependencies.adminClaimsController))),
-            AppRoutes.conversations: (_) => protected(() => ConversationsPage(
-                controller: dependencies.conversationsController,
-                observer: _routeObserver)),
-            AppRoutes.conversation: (context) => protected(() => withId(
-                context,
-                (id) => ChatPage(
-                    conversationId: id,
-                    createController: dependencies.createChatController,
-                    releaseController: dependencies.releaseChatController,
-                    observer: _routeObserver))),
-          }));
+                        controller: dependencies.claimsController))),
+                AppRoutes.adminClaims: (_) => adminProtected(() =>
+                    AdminClaimsPage(
+                        controller: dependencies.adminClaimsController)),
+                AppRoutes.adminClaimDetail: (context) => adminProtected(() =>
+                    withId(
+                        context,
+                        (id) => AdminClaimDetailPage(
+                            claimId: id,
+                            controller: dependencies.adminClaimsController))),
+                AppRoutes.conversations: (_) => protected(() =>
+                    ConversationsPage(
+                        controller: dependencies.conversationsController,
+                        observer: _routeObserver)),
+                AppRoutes.conversation: (context) => protected(() => withId(
+                    context,
+                    (id) => ChatPage(
+                        conversationId: id,
+                        createController: dependencies.createChatController,
+                        releaseController: dependencies.releaseChatController,
+                        observer: _routeObserver))),
+              })));
 }

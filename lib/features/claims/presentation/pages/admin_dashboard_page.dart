@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../app/routes.dart';
+import '../../../deliveries/presentation/widgets/delivery_scope.dart';
+import '../../../deliveries/presentation/widgets/delivery_widgets.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/presentation/paged_controller.dart';
@@ -44,6 +47,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                               title: AppStrings.adminDashboardTitle,
                               subtitle: AppStrings.adminDashboardHelp,
                               eyebrow: AppStrings.adminRole),
+                          DeliveryTotals(
+                              admin: true,
+                              onStatus: (status) {
+                                DeliveryScope.maybeOf(context)
+                                    ?.admin
+                                    .setStatus(status);
+                                Navigator.pushNamed(
+                                    context, AppRoutes.adminDeliveries);
+                              }),
                           if (c.status == LoadStatus.loading ||
                               c.status == LoadStatus.initial)
                             const LoadingSkeleton(),

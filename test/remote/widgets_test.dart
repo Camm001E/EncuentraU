@@ -75,6 +75,8 @@ void main() {
     final pending = Completer<http.Response>();
     var reportCalls = 0;
     final client = MockClient((request) async {
+      if (request.url.path == ApiConstants.myDeliveriesPath)
+        return jsonResponse({...pageJson([]), 'limit': 1});
       if (request.url.path == ApiConstants.myConversationsPath)
         return jsonResponse(pageJson([]));
       if (request.url.path == ApiConstants.authMePath) return pending.future;
@@ -267,13 +269,38 @@ void main() {
     expect(find.text(AppStrings.reportReadOnly), findsOneWidget);
   });
   testWidgets(
+      'reporte activo protegido conserva evidencia y deshabilita edición',
+      (tester) async {
+    final locked = {...reportJson(), 'evidence_locked': true};
+    await start(tester, (request) async {
+      if (request.url.path == ApiConstants.myReportsPath)
+        return jsonResponse(pageJson([locked]));
+      if (request.url.path == ApiConstants.myDeliveriesPath)
+        return jsonResponse({...pageJson([]), 'limit': 1});
+      return jsonResponse(locked);
+    });
+    navigate(tester, AppRoutes.reportDetail, arguments: locked['id']);
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.evidenceProtected), findsOneWidget);
+    for (final label in [AppStrings.editReport, AppStrings.cancelReport]) {
+      final button = find
+          .ancestor(
+              of: find.text(label),
+              matching: find.byWidgetPredicate((w) => w is ButtonStyleButton))
+          .first;
+      expect(tester.widget<ButtonStyleButton>(button).onPressed, isNull);
+    }
+  });
+  testWidgets(
       '401 en una pantalla protegida borra datos y navegación autenticada',
       (tester) async {
     final deps = await start(
         tester,
         (request) async => request.url.path == ApiConstants.myReportsPath
             ? jsonResponse(pageJson([reportJson()]))
-            : jsonResponse({}, 401));
+            : request.url.path == ApiConstants.myDeliveriesPath
+                ? jsonResponse({...pageJson([]), 'limit': 1})
+                : jsonResponse({}, 401));
     expect(deps.objectController.items, isNotEmpty);
     navigate(tester, AppRoutes.matches);
     await tester.pumpAndSettle();

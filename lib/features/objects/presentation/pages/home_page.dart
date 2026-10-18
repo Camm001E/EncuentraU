@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../deliveries/presentation/widgets/delivery_widgets.dart';
+import '../../../deliveries/presentation/widgets/delivery_scope.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/constants/app_gradients.dart';
 import '../../../../core/constants/app_sizes.dart';
@@ -45,6 +47,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> refresh() async => Future.wait([
+        if (DeliveryScope.maybeOf(context) case final scope?)
+          scope.student.refreshCounts(),
         if (widget.onRefresh != null) widget.onRefresh!(),
         widget.controller.refresh(),
         if (widget.dashboardController != null)
@@ -153,6 +157,7 @@ class _HomePageState extends State<HomePage> {
                                 ]);
                         }),
                         const SizedBox(height: AppSizes.spacingXLarge),
+                        const DeliveryTotals(),
                         if (widget.dashboardController
                             case final dashboard?) ...[
                           const SectionHeading(title: AppStrings.summaryTitle),

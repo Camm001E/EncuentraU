@@ -87,6 +87,7 @@ class _EditReportPageState extends State<EditReportPage> {
               _status = report.status;
             }
             final enabled = report.status == ReportStatus.active &&
+                !report.evidenceLocked &&
                 !controller.isUpdating &&
                 !(ReportImageScope.maybeOf(context)?.isBusy(report.id) ??
                     false);
@@ -101,7 +102,8 @@ class _EditReportPageState extends State<EditReportPage> {
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  if (report.status != ReportStatus.active)
+                                  if (report.status != ReportStatus.active ||
+                                      report.evidenceLocked)
                                     const Text(AppStrings.reportReadOnly),
                                   const SectionHeading(
                                       title: AppStrings.photoStep,
