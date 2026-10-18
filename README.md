@@ -134,3 +134,47 @@ verificador de tool solo comprueba deserialización y contrato; no calcula punta
 
 El backend oficial vive en [EncuentraU_Backend](https://github.com/Camm001E/EncuentraU_Backend).
 Su configuración y migraciones se documentan en su propio repositorio.
+
+
+## Fotografías persistentes
+
+Los reportes y resúmenes de coincidencia admiten `image: null` para registros anteriores,
+o una referencia segura con UUID, report_id, content_type, size_bytes, SHA-256, dimensiones
+y fechas. El cliente construye las rutas desde `ApiConstants`; nunca consume rutas físicas,
+storage_key, URLs externas arbitrarias ni información privada del candidato.
+
+El puerto `ReportImageRepository` y los casos de uso de subir, consultar, descargar y eliminar
+son independientes de HTTP. El datasource usa el cliente Bearer compartido tanto para multipart
+como para bytes. Android y web muestran `Image` con bytes autenticados, sin enlaces públicos.
+Un 401 conserva el comportamiento de cierre de sesión y limpieza de datos.
+
+Si hay fotografía seleccionada, el orden es: crear reporte una sola vez, subir mediante PUT y
+entonces generar coincidencias. La foto es opcional. Si falla PUT, el reporte permanece guardado;
+el formulario conserva los bytes temporalmente, explica el fallo y permite reintentar únicamente
+la subida. No se vuelve a enviar POST reports. Una foto ya guardada no se vuelve a subir cuando
+solo falla la generación de coincidencias.
+
+La caché LRU se limita a 16 MiB y 32 entradas, agrupa descargas concurrentes y se invalida al
+reemplazar o borrar una imagen. Al cambiar/cerrar/vencer sesión se vacía y se descartan respuestas
+tardías. Los providers de imágenes privadas se expulsan al desmontar los widgets. La vista previa
+del formulario también se retira de la caché al cambiarla o salir.
+
+Las fotografías aparecen en listas, detalles, edición, tarjetas y detalle de coincidencia. El detalle
+compara las dos fotos en columnas o filas según el ancho. Los reportes sin imagen usan placeholder.
+El máximo inicial es 8 MiB en el cliente y el backend; solo se permiten JPEG, PNG y WebP.
+La API valida y normaliza los archivos de forma autoritativa. Los porcentajes siguen viniendo del servidor.
+
+Prueba Android optativa con `integration_test` del SDK:
+
+```powershell
+python tool/run_images_e2e.py --image-a "<foto-A.png>" --image-b "<foto-B.png>" --uploads-dir "<backend>/var/uploads" --adb "<Android-SDK>/platform-tools/adb.exe"
+```
+
+Requiere backend y PostgreSQL locales con la migración 0003. Las fotos deben ser dos vistas PNG
+del mismo objeto; se copian de forma atómica a la caché privada del paquete debug después de su instalación.
+El arnés verifica su SHA-256 y selecciona esos archivos reales sin solicitar permisos extra.
+El test crea usuarios y reportes nuevos, conserva sus filas y genera contraseñas únicamente en memoria.
+Reproduce un análisis guardado a través del puerto de análisis para no gastar llamadas nuevas a Gemini;
+el resto de tráfico de autenticación, reportes, archivos y coincidencias utiliza FastAPI real.
+No hay fotografías ni credenciales de la prueba en el repositorio. Capturas y resultados locales van en
+`build/`. La prueba no se incluye en la suite de unidad/widgets ni depende de cuentas existentes.

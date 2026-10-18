@@ -1,3 +1,4 @@
+import '../../../objects/presentation/widgets/report_photo.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/constants/api_constants.dart';
@@ -40,6 +41,13 @@ class MatchCard extends StatelessWidget {
                           : () => Navigator.pushNamed(
                               context, AppRoutes.matchDetail,
                               arguments: match.id)),
+                  if (detail)
+                    _PhotoComparison(match: match)
+                  else
+                    ReportPhoto(
+                        image: match.candidateReport.image,
+                        height: AppSizes.matchPhotoHeight),
+                  const SizedBox(height: AppSizes.spacingMedium),
                   Text(match.status.label),
                   Text(match.compatible
                       ? AppStrings.compatible
@@ -112,4 +120,34 @@ class _Summary extends StatelessWidget {
         Text(report.location),
         Text(formatDate(report.eventDate)),
       ]);
+}
+
+class _PhotoComparison extends StatelessWidget {
+  const _PhotoComparison({required this.match});
+  final ObjectMatch match;
+  @override
+  Widget build(BuildContext context) =>
+      LayoutBuilder(builder: (context, constraints) {
+        final photos = [
+          Column(children: [
+            const Text(AppStrings.myReport),
+            ReportPhoto(image: match.myReport.image)
+          ]),
+          Column(children: [
+            const Text(AppStrings.candidateReport),
+            ReportPhoto(image: match.candidateReport.image)
+          ]),
+        ];
+        return constraints.maxWidth >= AppSizes.photoComparisonBreakpoint
+            ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(child: photos[0]),
+                const SizedBox(width: AppSizes.spacingMedium),
+                Expanded(child: photos[1])
+              ])
+            : Column(children: [
+                photos[0],
+                const SizedBox(height: AppSizes.spacingMedium),
+                photos[1]
+              ]);
+      });
 }

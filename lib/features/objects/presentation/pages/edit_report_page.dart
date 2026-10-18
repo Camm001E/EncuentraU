@@ -1,3 +1,7 @@
+import '../../domain/entities/report_image.dart';
+import '../widgets/report_photo_picker.dart';
+import '../widgets/report_photo_editor.dart';
+import '../widgets/report_image_scope.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -10,9 +14,13 @@ import '../widgets/report_form_fields.dart';
 
 class EditReportPage extends StatefulWidget {
   const EditReportPage(
-      {required this.reportId, required this.controller, super.key});
+      {required this.reportId,
+      required this.controller,
+      this.pickImage = pickReportPhoto,
+      super.key});
   final String reportId;
   final ObjectController controller;
+  final Future<ReportImageUpload?> Function() pickImage;
   @override
   State<EditReportPage> createState() => _EditReportPageState();
 }
@@ -52,7 +60,11 @@ class _EditReportPageState extends State<EditReportPage> {
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(title: const Text(AppStrings.editReport)),
       body: AnimatedBuilder(
-          animation: widget.controller,
+          animation: Listenable.merge([
+            widget.controller,
+            if (ReportImageScope.maybeOf(context) case final controller?)
+              controller
+          ]),
           builder: (context, _) {
             final controller = widget.controller;
             if (controller.detailStatus == LoadStatus.loading ||
@@ -70,8 +82,10 @@ class _EditReportPageState extends State<EditReportPage> {
               _data = ReportFormData(report: report);
               _status = report.status;
             }
-            final enabled =
-                report.status == ReportStatus.active && !controller.isUpdating;
+            final enabled = report.status == ReportStatus.active &&
+                !controller.isUpdating &&
+                !(ReportImageScope.maybeOf(context)?.isBusy(report.id) ??
+                    false);
             return SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSizes.spacingMLarge),
                 child: Center(
@@ -85,6 +99,19 @@ class _EditReportPageState extends State<EditReportPage> {
                                 children: [
                                   if (report.status != ReportStatus.active)
                                     const Text(AppStrings.reportReadOnly),
+                                  ReportPhotoEditor(
+                                      pickImage: widget.pickImage,
+                                      reportId: report.id,
+                                      image: report.image,
+                                      enabled: enabled,
+                                      onChanged: () async {
+                                        await Future.wait([
+                                          controller.refresh(),
+                                          controller.loadDetail(report.id)
+                                        ]);
+                                      }),
+                                  const SizedBox(
+                                      height: AppSizes.spacingMedium),
                                   ReportFormFields(
                                       data: _data!, enabled: enabled),
                                   DropdownButtonFormField<ReportStatus>(

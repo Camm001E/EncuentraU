@@ -1,6 +1,23 @@
 import 'app_validation.dart';
 
 abstract final class AppStrings {
+  static const reportPhoto = 'Fotografía del reporte';
+  static const noReportPhoto = 'Sin fotografía';
+  static const photoUnavailable = 'No fue posible cargar la fotografía.';
+  static const uploadingPhoto = 'Subiendo fotografía...';
+  static const retryPhotoUpload = 'Reintentar subir fotografía';
+  static const replaceReportPhoto = 'Subir o reemplazar fotografía';
+  static const deleteReportPhoto = 'Eliminar fotografía';
+  static const deletePhotoConfirmation =
+      '¿Quieres eliminar la fotografía de este reporte?';
+  static const photoSaved = 'Fotografía guardada correctamente.';
+  static const photoDeleted = 'Fotografía eliminada.';
+  static const reportSavedPhotoFailed =
+      'Reporte guardado, pero no fue posible subir la fotografía. Puedes reintentar sin duplicarlo.';
+  static const reportPhotoTooLarge =
+      'La fotografía debe pesar como máximo 8 MB.';
+  static const reportPhotoUnsupported =
+      'Usa una fotografía JPEG, PNG o WebP válida.';
   static const String appName = 'EncuentraU';
 
   // Inicio de sesión
