@@ -172,6 +172,8 @@ abstract final class AppTheme {
               borderRadius: BorderRadius.circular(AppSizes.radiusSmall)),
           padding: const EdgeInsets.all(AppSizes.spacingSmall)),
       snackBarTheme: SnackBarThemeData(
+          elevation: 4,
+          insetPadding: const EdgeInsets.all(16),
           behavior: SnackBarBehavior.floating,
           backgroundColor: scheme.inverseSurface,
           contentTextStyle: TextStyle(color: scheme.onInverseSurface),
