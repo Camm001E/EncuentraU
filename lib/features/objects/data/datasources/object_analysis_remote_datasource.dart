@@ -64,6 +64,7 @@ class ObjectAnalysisRemoteDataSource {
       }
     } on ApiException catch (error) {
       throw ObjectAnalysisException(switch (error.failure) {
+        ApiFailure.rateLimited => AppStrings.aiQuotaReached,
         ApiFailure.unauthorized ||
         ApiFailure.forbidden =>
           AppStrings.sessionExpired,
