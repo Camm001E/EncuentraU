@@ -97,6 +97,10 @@ class AuthLayout extends StatelessWidget {
                                                         BorderRadius.circular(
                                                             AppSizes
                                                                 .radiusXLarge),
+                                                    border: Border.all(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .outlineVariant),
                                                     boxShadow: AppShadows.soft),
                                                 child: child)))),
                               ])))))));
