@@ -1,4 +1,6 @@
 abstract final class AppRoutes {
+  static const recoverPassword = '/auth/recover-password';
+  static const verifyEmail = '/auth/verify-email';
   static const deliveries = '/deliveries';
   static const deliveryDetail = '/deliveries/detail';
   static const adminDeliveries = '/admin/deliveries';

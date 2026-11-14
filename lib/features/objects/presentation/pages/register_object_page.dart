@@ -159,7 +159,8 @@ class _RegisterObjectPageState extends State<RegisterObjectPage> {
         showMessage(AppStrings.reportSavedMatchesFailed);
       } else {
         widget.matchController.resetFilters();
-        Navigator.pushReplacementNamed(context, AppRoutes.matches);
+        Navigator.pushReplacementNamed(context, AppRoutes.matches,
+            arguments: saved.id);
         showMessage(AppStrings.generatedCount(result.items.length));
       }
     } finally {

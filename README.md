@@ -1,321 +1,78 @@
-# EncuentraU
+# EncuentraU · Frontend
 
-Cliente Flutter de reportes universitarios perdidos y encontrados. Autenticación,
-reportes y coincidencias consumen el backend oficial FastAPI/PostgreSQL. El análisis
-visual sigue usando Gemini a través del backend.
+Aplicación Flutter para reportar objetos perdidos y encontrados, revisar coincidencias y coordinar devoluciones. Consume la API de EncuentraU y está disponible en [la aplicación web](https://encuentrau.3.131.242.200.sslip.io).
+
+## Qué incluye
+
+- Registro, inicio de sesión y recuperación de contraseña.
+- Verificación del correo mediante un código de ocho dígitos, con reenvío limitado.
+- Reportes con fotografía, atributos editables y seguimiento de estado.
+- Candidatos por reporte y comparación de fotografías.
+- Reclamaciones y revisión administrativa.
+- Chat privado después de la aprobación y confirmaciones de entrega.
+- Vistas adaptadas a escritorio y móvil, estados de carga, errores y reintentos.
+
+La IA sugiere características y coincidencias; no acredita quién es dueño del objeto. El usuario puede corregir los datos antes de guardar su reporte.
 
 ## Arquitectura
 
-Presentation → Domain ← Data, con infraestructura compartida en core.
+```text
+presentation → domain ← data
+                  ↑
+             core / app
+```
 
-- domain: entidades, entradas de creación/edición, páginas, contratos y casos de uso.
-  No importa Flutter, HTTP, plugins ni controladores.
-- data: modelos snake_case, fuentes HTTP y repositorios remotos.
-- presentation: controladores, pantallas, formularios y mensajes centralizados.
-- core: TokenStorage, SessionManager, cliente autenticado, errores y constantes.
-- app: composición e inyección de un único http.Client y almacenamiento seguro.
+- `presentation`: pantallas, formularios y controladores.
+- `domain`: entidades, contratos y casos de uso.
+- `data`: modelos, fuentes HTTP y repositorios.
+- `core`: sesión, almacenamiento de token, cliente HTTP y configuración compartida.
+- `app`: composición e inyección de dependencias.
 
-SessionManager comunica vencimientos sin importar presentación. Las respuestas 401
-cierran sesión, eliminan el token, limpian reportes, coincidencias y análisis y
-vuelven al login eliminando el historial. Una cuenta inactiva (403) también cierra
-la sesión. Las operaciones de almacenamiento se serializan y las peticiones de
-una sesión anterior se descartan. Los controladores descartan resultados tardíos
-tras logout o cambio de usuario. SecureTokenStorage conserva únicamente el token.
+La sesión centraliza el acceso autenticado. Al salir o vencer la sesión, se limpian los datos de la cuenta y se descartan respuestas tardías. Las fotos privadas se consultan con autorización.
 
-## Endpoints
+## Ejecutar localmente
 
-Todas las rutas se centralizan en ApiConstants. Reportes y coincidencias requieren
-Bearer JWT; el cliente lo obtiene del almacenamiento seguro automáticamente.
-
-| Método | Ruta |
-| --- | --- |
-| POST | /api/v1/auth/register |
-| POST | /api/v1/auth/login |
-| GET | /api/v1/auth/me |
-| POST | /api/v1/ai/analyze |
-| POST | /api/v1/reports |
-| GET | /api/v1/reports/me |
-| GET, PATCH, DELETE | /api/v1/reports/{id} |
-| POST | /api/v1/reports/{id}/matches/generate |
-| GET | /api/v1/matches/me |
-| GET | /api/v1/matches/{id} |
-
-El registro de cuenta vuelve al login sin iniciar sesión. Login valida /auth/me
-antes de guardar el token. Home carga reportes después de autenticar; no hay carga
-previa desde main.dart. Listados, filtros, paginación, detalle, edición, cancelación
-y reintentos usan la API. Los estados son active, resolved y cancelled. DELETE
-realiza la cancelación lógica y refresca lista y detalle.
-
-El formulario distingue tipo de objeto y categoría y permite corregir los campos
-sugeridos por Gemini. Conserva colores primario/secundarios, marca y forma; una
-marca vacía se envía como null. No genera IDs. La fecha se envía YYYY-MM-DD.
-La fotografía solo sirve como previsualización y entrada del análisis visual.
-POST /reports envía atributos y, opcionalmente, analysis con extracted_data y
-confidence. No envía fotografía, Base64, bytes, nombre/ruta local ni XFile.
-
-La creación guarda primero el reporte y usa su UUID real para generar
-coincidencias. Si esa segunda operación falla, el reporte se conserva, se abre su
-detalle y se permite repetir únicamente la búsqueda. Un resultado vacío es válido.
-Coincidencias consulta /matches/me; filtros y paginación pertenecen al servidor.
-Muestra sin recalcular porcentaje, nivel, identidad, contexto, cobertura, nueve
-factores y advertencias. El modelo de coincidencias usa resúmenes separados sin
-datos privados, usuario ajeno, extracción completa ni autenticación. No incluye
-acciones de reclamación o aprobación, que pertenecen a una fase posterior.
-
-HTTP 400/422, 401, 403, 404, 409, 5xx, timeout, conexión y JSON inválido tienen
-mensajes controlados en AppStrings; no se muestran cuerpos técnicos ni trazas.
-AppColors, AppSizes, AppDurations y AppRoutes centralizan la presentación.
-
-## Ejecutar
-
-Comprueba el backend existente sin iniciar otra instancia:
+Se necesitan Flutter y el backend con sus migraciones aplicadas.
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:8000/health
-Invoke-RestMethod http://127.0.0.1:8000/health/database
 flutter pub get
 flutter run -d edge --web-port 8080 --dart-define=API_BASE_URL=http://127.0.0.1:8000
 ```
 
-En web abre exactamente http://localhost:8080. CORS del backend debe permitir ese
-origen. El almacenamiento seguro web requiere localhost o HTTPS; el token está
-asociado al navegador y origen. No se necesitan archivos .env en Flutter. Las
-claves de Gemini, JWT y PostgreSQL pertenecen exclusivamente al backend.
+Abrir `http://localhost:8080` y permitir ese origen en CORS del backend. El almacenamiento de sesión web requiere localhost o HTTPS. En el emulador Android, la dirección habitual del backend del equipo es `http://10.0.2.2:8000`.
 
-| Entorno | API_BASE_URL |
-| --- | --- |
-| Edge local | http://127.0.0.1:8000 |
-| Emulador Android | http://10.0.2.2:8000 |
-| Celular físico | http://IP_LOCAL_DEL_PC:8000 |
+`API_BASE_URL` se incorpora al compilar. Las claves de OpenAI, Gemini, PostgreSQL y JWT pertenecen al servidor; no deben incluirse en Flutter ni en los archivos web.
 
-En un celular físico el servidor debe escuchar en 0.0.0.0 y ser accesible por la
-red local. La dirección se pasa mediante dart-define, sin guardarla en widgets.
+## Verificación de correo
 
-```powershell
-flutter run -d ID_DEL_EMULADOR --dart-define=API_BASE_URL=http://10.0.2.2:8000
-flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8000
-```
+Antes del primer ingreso, la cuenta debe verificar su correo si el servidor exige esa comprobación. La pantalla **Verificar correo** solicita correo y contraseña para enviar el código; permite introducirlo, reenviarlo cuando corresponda y volver al inicio de sesión. El código vence en diez minutos. No se guarda la contraseña ni el código en el almacenamiento de sesión. Para una contraseña olvidada, usa **Olvidé mi contraseña** en el inicio de sesión: solicita el código, escribe una nueva contraseña y confírmala. Al completar la recuperación, se invalidan las sesiones anteriores.
 
-APK: build/app/outputs/flutter-apk/app-debug.apk. Android conserva Kotlin,
-com.encuentrau.app, compile/target SDK 36, NDK 28.2.13676358 y minSdk 24. Se mantiene
-flutter_secure_storage 10.1.0, image_picker y package:http con pubspec.lock. No
-actualices dependencias globalmente para reproducir el proyecto.
-INTERNET está habilitado; HTTP sin cifrar solo se permite en debug. Release y
-profile requieren HTTPS. No se incluye firma de publicación.
-android/local.properties, build, .dart_tool, .env, claves y evidencias son locales
-e ignorados. No deben agregarse al repositorio.
+## Coincidencias
 
-## Verificación automática
+Desde **Mis reportes**, abrir un objeto y pulsar **Buscar coincidencias**. La pantalla muestra los candidatos de ese reporte, sin mezclar los de otros objetos. **Descartados** y **Cerrados** tienen secciones separadas. La vista general de Coincidencias permite consultar los casos de la cuenta.
+
+Cada tarjeta identifica el objeto propio y el candidato. El puntaje de búsqueda se muestra sobre 100 y no equivale a un porcentaje de certeza. La comparación de fotos tiene su propia explicación: puede encontrar compatibilidad, diferencias o pedir otra toma. Los resultados guardados se reutilizan cuando siguen vigentes.
+
+## Chat y WebSocket
+
+El chat aparece dentro de una reclamación aprobada, para sus participantes. WebSocket recibe avisos en tiempo real y la aplicación vuelve a consultar los mensajes autorizados. Redis distribuye esos avisos en el backend; no hay que instalarlo en el navegador ni en el equipo de cada usuario.
+
+Los mensajes quedan guardados en PostgreSQL. Una desconexión no equivale a borrar el historial y una cuenta ajena no puede entrar en la conversación.
+
+## Cupos de IA
+
+Los cupos internos del servidor están desactivados para la entrega. La interfaz conserva el manejo del error 429 para cuando vuelvan a habilitarse: informa del límite y permite seguir usando reportes y mensajes. No reintenta automáticamente el análisis. La configuración se explica en `deploy/aws/AI_QUOTAS.md` del backend.
+
+## Verificación y compilación
 
 ```powershell
-flutter pub get
-dart format --output=none --set-exit-if-changed lib test
 flutter analyze
 flutter test
-dart run tool/verify_matching.dart
-flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8000
-git diff --check
+.\deploy\aws\build.ps1 -PublicOrigin https://encuentrau.3.131.242.200.sslip.io -ImageTag encuentrau-web:release-local
 ```
 
-Las pruebas usan MockClient, almacenamiento en memoria y fixtures sin credenciales.
-No dependen de FastAPI, PostgreSQL, Gemini ni plugins reales. El fixture match_91
-conserva las métricas del caso E2E: 91%, high, compatible, nueve factores. El
-verificador de tool solo comprueba deserialización y contrato; no calcula puntajes.
+La construcción para AWS requiere Docker y genera una imagen local; no la publica ni actualiza el servidor. Cambiar el origen de la API requiere recompilar.
 
-## Prueba manual posterior
+Las pruebas cubren sesión, recuperación de contraseña, reportes, candidatos por objeto, reclamaciones, chat y entregas. Para comprobar cambios en los proveedores de IA también se necesitan fotos reales; las pruebas de interfaz no miden su precisión.
 
-1. Login, recarga y logout deben respetar la sesión y bloquear el regreso a Home.
-2. Crear un reporte debe conservar atributos, análisis opcional y UUID del servidor.
-3. Verificar el reporte en public.object_reports sin consultar credenciales.
-4. Buscar coincidencias y comprobar los valores servidos por FastAPI.
-5. Editar y cancelar; un reporte resuelto o cancelado queda sin acciones activas.
-6. Reiniciar la aplicación y comprobar que los reportes persisten.
-7. Con el servidor apagado, comprobar errores y reintento; con 401, sesión cerrada.
-
-El backend oficial vive en [EncuentraU_Backend](https://github.com/Camm001E/EncuentraU_Backend).
-Su configuración y migraciones se documentan en su propio repositorio.
-
-
-## Fotografías persistentes
-
-Los reportes y resúmenes de coincidencia admiten `image: null` para registros anteriores,
-o una referencia segura con UUID, report_id, content_type, size_bytes, SHA-256, dimensiones
-y fechas. El cliente construye las rutas desde `ApiConstants`; nunca consume rutas físicas,
-storage_key, URLs externas arbitrarias ni información privada del candidato.
-
-El puerto `ReportImageRepository` y los casos de uso de subir, consultar, descargar y eliminar
-son independientes de HTTP. El datasource usa el cliente Bearer compartido tanto para multipart
-como para bytes. Android y web muestran `Image` con bytes autenticados, sin enlaces públicos.
-Un 401 conserva el comportamiento de cierre de sesión y limpieza de datos.
-
-Si hay fotografía seleccionada, el orden es: crear reporte una sola vez, subir mediante PUT y
-entonces generar coincidencias. La foto es opcional. Si falla PUT, el reporte permanece guardado;
-el formulario conserva los bytes temporalmente, explica el fallo y permite reintentar únicamente
-la subida. No se vuelve a enviar POST reports. Una foto ya guardada no se vuelve a subir cuando
-solo falla la generación de coincidencias.
-
-La caché LRU se limita a 16 MiB y 32 entradas, agrupa descargas concurrentes y se invalida al
-reemplazar o borrar una imagen. Al cambiar/cerrar/vencer sesión se vacía y se descartan respuestas
-tardías. Los providers de imágenes privadas se expulsan al desmontar los widgets. La vista previa
-del formulario también se retira de la caché al cambiarla o salir.
-
-Las fotografías aparecen en listas, detalles, edición, tarjetas y detalle de coincidencia. El detalle
-compara las dos fotos en columnas o filas según el ancho. Los reportes sin imagen usan placeholder.
-El máximo inicial es 8 MiB en el cliente y el backend; solo se permiten JPEG, PNG y WebP.
-La API valida y normaliza los archivos de forma autoritativa. Los porcentajes siguen viniendo del servidor.
-
-Prueba Android optativa con `integration_test` del SDK:
-
-```powershell
-python tool/run_images_e2e.py --image-a "<foto-A.png>" --image-b "<foto-B.png>" --uploads-dir "<backend>/var/uploads" --adb "<Android-SDK>/platform-tools/adb.exe"
-```
-
-Requiere backend y PostgreSQL locales con la migración 0003. Las fotos deben ser dos vistas PNG
-del mismo objeto; se copian de forma atómica a la caché privada del paquete debug después de su instalación.
-El arnés verifica su SHA-256 y selecciona esos archivos reales sin solicitar permisos extra.
-El test crea usuarios y reportes nuevos, conserva sus filas y genera contraseñas únicamente en memoria.
-Reproduce un análisis guardado a través del puerto de análisis para no gastar llamadas nuevas a Gemini;
-el resto de tráfico de autenticación, reportes, archivos y coincidencias utiliza FastAPI real.
-No hay fotografías ni credenciales de la prueba en el repositorio. Capturas y resultados locales van en
-`build/`. La prueba no se incluye en la suite de unidad/widgets ni depende de cuentas existentes.
-
-## Identidad pastel y experiencia de coincidencias
-
-El sistema visual sigue una sola cadena: `AppColors` → `AppTheme` y
-`AppSemanticColors` → componentes → pantallas. Salvia, durazno y lavanda se usan
-en superficies; textos y acciones utilizan tonos profundos. Los pigmentos se
-definen una sola vez en `app_colors.dart`. Gradientes y sombras combinan esa
-paleta; las páginas consumen `ColorScheme` y los estados semánticos del tema.
-Una prueba arquitectónica evita colores hexadecimales o colores Material
-dispersos y verifica contraste de textos, estados y límites de campos.
-
-`AppShell` conserva las rutas nominales y presenta Inicio, Mis reportes,
-Coincidencias y Perfil con NavigationBar o NavigationRail. Perfil solo muestra
-al usuario autenticado. Cerrar o vencer sesión limpia reportes, coincidencias,
-análisis, resumen y caché privada, y elimina el historial autenticado.
-
-El módulo dashboard mantiene entidades, puerto, caso de uso, adaptador y
-controlador separados. Sus cifras proceden de `total` en consultas paginadas
-autenticadas de una fila: reportes activos, perdidos, encontrados y coincidencias.
-No se cuentan filas incompletas de una página ni se inventan estadísticas.
-Las escrituras y la generación de coincidencias actualizan ese resumen.
-
-El registro presenta fotografía, análisis, atributos editables, lugar y fecha,
-característica privada y revisión. Se conservan las validaciones y el orden
-crear → subir → generar, incluido el reintento de foto sin duplicar el reporte.
-
-La lista de coincidencias es breve. El detalle separa las dos fotos autenticadas,
-el anillo de compatibilidad estimada, cobertura, identidad y contexto, nueve
-factores y observaciones. Todos los valores y explicaciones proceden de FastAPI;
-las divisiones usadas por los pintores solo representan barras y arcos.
-La propiedad siempre requiere validación antes de entregar el objeto.
-
-El escaneo y las barras tienen una entrada finita, sin bucles decorativos.
-Respetan la reducción de movimiento mediante
-[MediaQuery](https://api.flutter.dev/flutter/widgets/MediaQueryData/disableAnimations.html).
-El anillo conserva su estado al cambiar de orientación. Los componentes soportan
-texto ampliado; botones, iconos y navegación mantienen objetivos táctiles accesibles.
-No se agregaron dependencias de ejecución, fotografías de muestra ni fuentes externas.
-
-Para recorrer y capturar la experiencia Android con la API real:
-
-```powershell
-python -X utf8 tool/run_images_e2e.py --ui --image-a "<foto-A.png>" --image-b "<foto-B.png>" --uploads-dir "<backend>/var/uploads" --adb "<Android-SDK>/platform-tools/adb.exe"
-```
-
-Las capturas y resultados quedan exclusivamente en `build/ui-redesign/`.
-El recorrido registra una cuenta desde la interfaz, reutiliza un análisis previo,
-crea reportes y fotos reales, compara, recrea la app, edita y cierra sesión.
-Selecciona explícitamente una fecha pasada para no depender de la zona horaria
-del emulador. No llama a Gemini ni guarda contraseñas o JWT en archivos versionados.
-
-## Reclamaciones, administración y conversación privada
-
-Los módulos `claims` y `messaging` separan entidades y puertos de dominio, casos
-de uso, modelos JSON, adaptadores HTTP y controladores de presentación. Comparten
-el cliente autenticado, las fotografías privadas y la paleta pastel del tema.
-La API decide los estados y los porcentajes; Flutter solo los representa.
-
-El propietario de un reporte perdido puede reclamar desde una coincidencia
-pendiente con ambos reportes activos. La respuesta privada requiere confirmación
-y no puede editarse después. Perfil permite abrir **Mis reclamaciones**, con
-filtros, paginación y refresco. El custodio recibe solo el estado de revisión,
-nunca la respuesta privada ni las características del otro reporte.
-
-El rol `admin` abre un shell separado con Resumen, Reclamaciones y Perfil. Las
-cifras proceden de los totales paginados de la API. El detalle reúne fotografías,
-compatibilidad, factores y evidencia privada. Aprobar o rechazar pide confirmación;
-el rechazo exige un motivo. Los estudiantes no pueden abrir rutas administrativas.
-La creación de administradores se realiza exclusivamente con la CLI del backend;
-la app no registra roles privilegiados.
-
-El acceso **Mensajes** aparece al existir conversaciones reales. También puede
-abrirse desde una reclamación aprobada. El chat muestra solo nombre de
-visualización, objeto y texto plano. Un UUID v4 por envío se conserva al reintentar
-un fallo, evitando mensajes duplicados. La historia se pagina mediante el cursor
-de FastAPI y la lectura confirma únicamente el último mensaje descargado.
-El polling ocurre cada cuatro segundos mientras la ruta está visible y la app
-está en primer plano. Se detiene al salir, suspender o cerrar la sesión.
-
-Un 401 elimina credenciales y todos los datos privados de reclamaciones,
-administración, conversaciones, mensajes e imágenes. Un 403 de permisos conserva
-la sesión; un 403 de cuenta inactiva la elimina. Las pantallas no interpretan
-HTML ni muestran errores internos del servidor. Los mensajes no admiten adjuntos,
-edición o eliminación. El proceso de entrega y cierre se describe a continuación.
-
-Prueba real opcional con PostgreSQL, FastAPI y `emulator-5554` ya activos:
-
-```powershell
-python -X utf8 tool/run_claims_chat_e2e.py --backend-root "<backend>" --image-a "<foto-A.png>" --image-b "<foto-B.png>" --adb "<Android-SDK>/platform-tools/adb.exe"
-```
-
-El comando crea un administrador mediante la misma CLI segura, con contraseña
-aleatoria solo en memoria. Transfiere la credencial una vez al caché privado de la
-app de depuración y la elimina al consumirla. Conserva los usuarios y reportes de
-prueba en PostgreSQL, pero no exporta contraseñas ni JWT. Reutiliza el análisis de
-Gemini anterior sin nuevas llamadas. Las capturas, logs y resultados permanecen
-en `build/claims-chat-e2e/`, ignorado por Git. No usar credenciales reales con este
-recorrido de desarrollo.
-
-### Entrega física y cierre del caso
-
-Cada reclamación aprobada tiene un proceso de entrega persistente. El chat muestra
-su estado y una línea de tiempo accesible. El custodio confirma que entregó y el
-reclamante que recibió, únicamente después del intercambio físico. Flutter envía
-la acción sin rol ni identidad; FastAPI determina al participante desde el JWT.
-Ambas confirmaciones llevan el caso a validación administrativa.
-
-El administrador dispone de **Entregas**, con filtros, paginación y prioridad para
-disputas. Revisa fotografías, coincidencia, evidencia y confirmaciones. Del chat
-solo recibe cantidad de mensajes y fecha de actividad; nunca su contenido.
-Validar resuelve ambos reportes y deja la conversación en modo lectura. El cierre
-se conserva al reiniciar la app. Los reportes y fotografías protegidos por una
-reclamación no pueden modificarse; el permiso procede de `evidence_locked`.
-
-Antes del cierre, cualquier participante puede reportar un problema. El
-administrador puede devolver una disputa o un caso pendiente de validación a
-coordinación. Las confirmaciones actuales se reinician, pero el historial conserva
-todos los eventos. Las notas administrativas permanecen privadas.
-
-El módulo `features/deliveries` separa entidades, puertos, casos de uso, modelos,
-datasource, repositorio, controladores y presentación. Reutiliza el cliente Bearer,
-la caché privada, limpieza ante 401 y paleta pastel. Las cifras del inicio y perfil
-provienen de totales paginados del backend, sin inferirlas de páginas incompletas.
-El polling consulta avances únicamente mientras el chat está visible; un chat
-cerrado conserva mensajes y deshabilita el envío.
-
-Prueba real de los flujos normal y de disputa, sin llamadas nuevas a Gemini:
-
-```powershell
-python -X utf8 tool/run_delivery_e2e.py --backend-root "<backend>" --image-a "<foto-A.png>" --image-b "<foto-B.png>" --adb "<Android-SDK>/platform-tools/adb.exe"
-```
-
-El administrador de prueba se crea mediante la CLI segura. Las credenciales se
-mantienen en memoria y se retiran del caché privado del dispositivo después de
-consumirlas. Los casos se conservan en PostgreSQL; capturas y resultados quedan
-únicamente en `build/delivery-e2e/`, fuera de Git. No se incluyen datos E2E ni
-secretos en los archivos del proyecto.
-
-## Arquitectura del chat
-
-La presentacion usa ChatController; los casos de uso consultan repositorios y datasources HTTP autenticados. El canal WebSocket recibe avisos de Redis a traves del backend y solicita el historial por HTTP. Se reconecta tras fallos y sincroniza al conectarse. PostgreSQL conserva los mensajes. La sesion controla el token y descarta resultados de cuentas anteriores. El token viaja en el primer frame, nunca en la URL; en produccion se utiliza WSS.
+Ver [la guía de entrega de la interfaz](deploy/aws/CLIENT_HANDOFF.md) para diseño, validación y operación. Antes de ampliar el uso, revisar la capacidad del despliegue y definir quién atenderá las incidencias.

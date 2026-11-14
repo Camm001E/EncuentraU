@@ -7,6 +7,7 @@ abstract interface class MatchRepository {
       {required int limit,
       required int offset,
       MatchLevel? level,
-      MatchStatus? status});
+      MatchStatus? status,
+      String? reportId});
   Future<ObjectMatch> getMyMatch(String id);
 }

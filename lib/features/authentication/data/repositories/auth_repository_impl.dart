@@ -63,6 +63,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return user;
     } on AuthException catch (error) {
       if (error.failure == AuthFailure.sessionExpired ||
+          error.failure == AuthFailure.emailUnverified ||
           error.failure == AuthFailure.inactiveAccount) {
         await _deleteToken();
       }

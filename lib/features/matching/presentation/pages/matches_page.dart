@@ -11,28 +11,41 @@ import '../widgets/visual_review_panel.dart';
 import '../../../../core/presentation/widgets/design_system.dart';
 
 class MatchesPage extends StatefulWidget {
-  const MatchesPage({required this.controller, super.key});
+  const MatchesPage({required this.controller, this.reportId, super.key});
   final MatchController controller;
+  final String? reportId;
   @override
   State<MatchesPage> createState() => _MatchesPageState();
 }
 
 class _MatchesPageState extends State<MatchesPage> {
+  late final MatchController controller = widget.reportId == null
+      ? widget.controller
+      : widget.controller.forReport(widget.reportId!);
+  @override
+  void dispose() {
+    if (widget.reportId != null) controller.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) widget.controller.refresh();
+      if (mounted) controller.refresh();
     });
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.matchesTitle)),
+      appBar: AppBar(
+          title: Text(widget.reportId == null
+              ? AppStrings.matchesTitle
+              : 'Candidatos de tu objeto')),
       body: AnimatedBuilder(
-          animation: widget.controller,
+          animation: controller,
           builder: (context, _) {
-            final controller = widget.controller;
+            final controller = this.controller;
             return ContentWidth(
                 child: RefreshIndicator(
                     onRefresh: controller.refresh,
@@ -40,9 +53,32 @@ class _MatchesPageState extends State<MatchesPage> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(AppSizes.spacingMLarge),
                         children: [
-                          const SectionHeading(
-                              title: AppStrings.matchListHeadline,
-                              subtitle: AppStrings.matchListSubtitle),
+                          SectionHeading(
+                              title: widget.reportId == null
+                                  ? AppStrings.matchListHeadline
+                                  : 'Coincidencias de este reporte',
+                              subtitle: widget.reportId == null
+                                  ? AppStrings.matchListSubtitle
+                                  : 'Solo se muestran resultados del objeto que seleccionaste.'),
+                          if (widget.reportId != null &&
+                              controller.items.isNotEmpty)
+                            Text(
+                                'Tu objeto: ${controller.items.first.myReport.objectType}'),
+                          const SizedBox(height: 12),
+                          Wrap(spacing: 8, runSpacing: 8, children: [
+                            for (final entry in const {
+                              MatchSection.candidates: 'Candidatos',
+                              MatchSection.discarded: 'Descartados',
+                              MatchSection.closed: 'Cerrados',
+                            }.entries)
+                              ChoiceChip(
+                                  label: Text(
+                                      '${entry.value} (${controller.sectionCount(entry.key)})'),
+                                  selected: controller.section == entry.key,
+                                  onSelected: (_) =>
+                                      controller.selectSection(entry.key)),
+                          ]),
+                          const SizedBox(height: 12),
                           LayoutBuilder(builder: (context, constraints) {
                             final width = (constraints.maxWidth -
                                     AppSizes.spacingMedium) /
@@ -103,9 +139,11 @@ class _MatchesPageState extends State<MatchesPage> {
                                 ]);
                           }),
                           const SizedBox(height: AppSizes.spacingLarge),
-                          Text(AppStrings.resultCount(controller.total)),
+                          Text(
+                              '${controller.visibleItems.length} resultados visibles'),
                           if (controller.canReview &&
-                              controller.items.isNotEmpty) ...[
+                              controller.section == MatchSection.candidates &&
+                              controller.visibleItems.isNotEmpty) ...[
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
                                 onPressed: controller.isReviewingBatch ||
@@ -117,8 +155,8 @@ class _MatchesPageState extends State<MatchesPage> {
                                     ? 'Revisando ${controller.batchCompleted}/${controller.batchTotal}'
                                     : 'Comparar hasta 5 coincidencias')),
                             const Text(
-                                'Las diferencias visibles quedan al final de esta lista. '
-                                'Abre una coincidencia para revisar los detalles.'),
+                                'Las diferencias visibles se separan en Descartados. '
+                                'Una comparación guardada se reutiliza si las fotos no cambiaron.'),
                             const SizedBox(height: 12),
                           ],
                           if (controller.status == LoadStatus.loading)
@@ -133,7 +171,12 @@ class _MatchesPageState extends State<MatchesPage> {
                           if (controller.status == LoadStatus.empty)
                             const Text(AppStrings.matchesHelp),
                           if (controller.status != LoadStatus.loading)
-                            ...controller.rankedItems.map((match) => MatchCard(
+                            if (controller.status == LoadStatus.ready &&
+                                controller.visibleItems.isEmpty)
+                              const Text('No hay resultados en esta sección.'),
+                          if (controller.status != LoadStatus.loading)
+                            ...controller.visibleItems.map((match) => MatchCard(
+                                onReturn: controller.refresh,
                                 match: match,
                                 visualReview: VisualReviewPanel(
                                     match: match,

@@ -21,13 +21,15 @@ class MatchRemoteDataSource {
           {required int limit,
           required int offset,
           MatchLevel? level,
-          MatchStatus? status}) async =>
+          MatchStatus? status,
+          String? reportId}) async =>
       ObjectMatchModel.page(
           (await _api.request('GET', ApiConstants.myMatchesPath, query: {
         ApiConstants.limitParameter: '$limit',
         ApiConstants.offsetParameter: '$offset',
         if (level != null) ApiConstants.levelParameter: level.name,
         if (status != null) ApiConstants.statusParameter: status.name,
+        if (reportId != null) 'report_id': reportId,
       }))!);
   Future<ObjectMatch> get(String id) async => ObjectMatchModel.fromJson(
       (await _api.request('GET', ApiConstants.matchPath(id)))!);

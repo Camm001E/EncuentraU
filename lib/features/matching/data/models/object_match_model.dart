@@ -1,3 +1,4 @@
+import 'visual_review_model.dart';
 import '../../../objects/data/models/report_image_model.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/json_reader.dart';
@@ -44,6 +45,10 @@ abstract final class ObjectMatchModel {
     _percentage(percentage);
     return ObjectMatch(
         id: JsonReader.string(json['id']),
+        visualReview: json['visual_review'] == null
+            ? null
+            : VisualReviewModel.fromJson(
+                JsonReader.object(json['visual_review'])),
         percentage: percentage,
         identityPercentage: _percentage(json['identity_percentage']),
         contextPercentage: _percentage(json['context_percentage']),

@@ -1,3 +1,4 @@
+import '../features/matching/presentation/pages/matches_page.dart';
 import '../features/objects/presentation/widgets/report_image_scope.dart';
 import '../features/deliveries/presentation/widgets/delivery_scope.dart';
 import '../features/deliveries/presentation/pages/deliveries_page.dart';
@@ -6,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_strings.dart';
 import '../core/theme/app_theme.dart';
 import '../features/authentication/presentation/pages/login_page.dart';
+import '../features/authentication/presentation/pages/verify_email_page.dart';
+import '../features/authentication/presentation/pages/recover_password_page.dart';
 import '../features/authentication/presentation/pages/register_page.dart';
 import '../features/authentication/presentation/pages/session_page.dart';
 import '../features/objects/domain/entities/object_report.dart';
@@ -109,6 +112,18 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
               theme: AppTheme.light,
               initialRoute: AppRoutes.session,
               routes: {
+                AppRoutes.recoverPassword: (context) => RecoverPasswordPage(
+                    recoverer: dependencies.authController.passwordRecoverer,
+                    initialEmail: ModalRoute.of(context)?.settings.arguments
+                            is String
+                        ? ModalRoute.of(context)!.settings.arguments as String
+                        : ''),
+                AppRoutes.verifyEmail: (context) => VerifyEmailPage(
+                    verifier: dependencies.authController.emailVerifier,
+                    initialEmail: ModalRoute.of(context)?.settings.arguments
+                            is String
+                        ? ModalRoute.of(context)!.settings.arguments as String
+                        : ''),
                 AppRoutes.deliveries: (_) => protected(() => DeliveriesPage(
                     controller: dependencies.deliveryController)),
                 AppRoutes.deliveryDetail: (context) => protected(() => withId(
@@ -158,7 +173,15 @@ class _EncuentraUAppState extends State<EncuentraUApp> {
                     (id) => EditReportPage(
                         reportId: id,
                         controller: dependencies.objectController))),
-                AppRoutes.matches: (_) => protected(() => shell(2)),
+                AppRoutes.matches: (context) => protected(() {
+                      final reportId =
+                          ModalRoute.of(context)?.settings.arguments;
+                      return reportId is String
+                          ? MatchesPage(
+                              controller: dependencies.matchController,
+                              reportId: reportId)
+                          : shell(2);
+                    }),
                 AppRoutes.matchDetail: (context) => protected(() => withId(
                     context,
                     (id) => MatchDetailPage(

@@ -94,7 +94,7 @@ void main() {
     await tester.pumpWidget(
         application(MatchCard(match: ObjectMatchModel.fromJson(matchJson()))));
     await tester.pumpAndSettle();
-    expect(find.text('91%'), findsOneWidget);
+    expect(find.text('91/100'), findsOneWidget);
     expect(find.byType(FactorEvidence), findsNothing);
     expect(find.text(AppStrings.estimatedCompatibility), findsOneWidget);
     expect(find.text(AppStrings.openMatch), findsOneWidget);

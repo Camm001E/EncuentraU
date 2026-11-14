@@ -39,7 +39,14 @@ class _LoginPageState extends State<LoginPage> {
       email: _emailController.text,
       password: _passwordController.text,
     );
-    if (!mounted || !succeeded) return;
+    if (!mounted) return;
+    if (!succeeded) {
+      if (widget.controller.needsEmailVerification) {
+        Navigator.pushNamed(context, AppRoutes.verifyEmail,
+            arguments: _emailController.text.trim());
+      }
+      return;
+    }
     Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.home, (_) => false);
   }
 
@@ -125,6 +132,14 @@ class _LoginPageState extends State<LoginPage> {
                                               : AppStrings.hidePassword)),
                                   validator: _validatePassword,
                                   onFieldSubmitted: (_) => _login()),
+                              TextButton(
+                                  onPressed: busy
+                                      ? null
+                                      : () => Navigator.pushNamed(
+                                          context, AppRoutes.recoverPassword,
+                                          arguments:
+                                              _emailController.text.trim()),
+                                  child: const Text('Olvidé mi contraseña')),
                               if (error != null) ...[
                                 const SizedBox(height: AppSizes.spacingMedium),
                                 AuthErrorMessage(error)
@@ -154,6 +169,14 @@ class _LoginPageState extends State<LoginPage> {
                                         child: const Text(
                                             AppStrings.registrationTitle)),
                                   ]),
+                              TextButton(
+                                  onPressed: busy
+                                      ? null
+                                      : () => Navigator.pushNamed(
+                                          context, AppRoutes.verifyEmail,
+                                          arguments:
+                                              _emailController.text.trim()),
+                                  child: const Text(AppStrings.verifyEmail)),
                             ])))));
       });
 }

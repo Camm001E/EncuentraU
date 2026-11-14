@@ -23,9 +23,14 @@ class MatchRepositoryImpl implements MatchRepository {
           {required int limit,
           required int offset,
           MatchLevel? level,
-          MatchStatus? status}) =>
+          MatchStatus? status,
+          String? reportId}) =>
       _parse(() => _remote.list(
-          limit: limit, offset: offset, level: level, status: status));
+          limit: limit,
+          offset: offset,
+          level: level,
+          status: status,
+          reportId: reportId));
   @override
   Future<ObjectMatch> getMyMatch(String id) => _parse(() => _remote.get(id));
 }

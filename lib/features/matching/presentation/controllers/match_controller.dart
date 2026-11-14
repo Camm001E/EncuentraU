@@ -1,3 +1,4 @@
+import '../../../objects/domain/entities/object_report.dart';
 import '../../../../core/presentation/api_message.dart';
 import '../../../../core/presentation/paged_controller.dart';
 import '../../domain/entities/object_match.dart';
@@ -7,16 +8,47 @@ import '../../domain/usecases/generate_report_matches.dart';
 import '../../domain/usecases/get_my_matches.dart';
 import '../../domain/usecases/get_my_match.dart';
 
+enum MatchSection { candidates, discarded, closed }
+
 class MatchController extends PagedController<ObjectMatch> {
   MatchController(
       {required GenerateReportMatches generateReportMatches,
       required GetMyMatches getMyMatches,
       required GetMyMatch getMyMatch,
       this.reviewPhotos,
+      this.reportId,
       this.onMatchesChanged})
       : _generate = generateReportMatches,
         _list = getMyMatches,
         _get = getMyMatch;
+  final String? reportId;
+  MatchSection section = MatchSection.candidates;
+  MatchController forReport(String id) => MatchController(
+      generateReportMatches: _generate,
+      getMyMatches: _list,
+      getMyMatch: _get,
+      reviewPhotos: reviewPhotos,
+      onMatchesChanged: onMatchesChanged,
+      reportId: id);
+  MatchSection sectionFor(ObjectMatch match) {
+    if (match.myReport.status != ReportStatus.active ||
+        match.candidateReport.status != ReportStatus.active)
+      return MatchSection.closed;
+    if (match.status == MatchStatus.rejected ||
+        visualReviewFor(match)?.verdict == VisualVerdict.different)
+      return MatchSection.discarded;
+    return MatchSection.candidates;
+  }
+
+  List<ObjectMatch> get visibleItems =>
+      rankedItems.where((m) => sectionFor(m) == section).toList();
+  int sectionCount(MatchSection value) =>
+      items.where((m) => sectionFor(m) == value).length;
+  void selectSection(MatchSection value) {
+    section = value;
+    notify();
+  }
+
   final GenerateReportMatches _generate;
   final GetMyMatches _list;
   final GetMyMatch _get;
@@ -28,7 +60,7 @@ class MatchController extends PagedController<ObjectMatch> {
   bool isReviewingBatch = false;
   int batchCompleted = 0, batchTotal = 0;
   bool get canReview => reviewPhotos != null;
-  int get reviewableCount => items
+  int get reviewableCount => visibleItems
       .where((m) =>
           m.myReport.image != null &&
           m.candidateReport.image != null &&
@@ -36,8 +68,10 @@ class MatchController extends PagedController<ObjectMatch> {
       .length;
 
   VisualReview? visualReviewFor(ObjectMatch match) {
-    final result = _reviews[match.id];
-    return result != null && result.appliesTo(match) ? result : null;
+    for (final result in [_reviews[match.id], match.visualReview]) {
+      if (result != null && result.appliesTo(match)) return result;
+    }
+    return null;
   }
 
   List<ObjectMatch> get rankedItems {
@@ -95,7 +129,7 @@ class MatchController extends PagedController<ObjectMatch> {
   Future<void> reviewVisible() async {
     if (isReviewingBatch || !canReview) return;
     final epoch = generation;
-    final candidates = items
+    final candidates = visibleItems
         .where((m) =>
             m.myReport.image != null &&
             m.candidateReport.image != null &&
@@ -135,7 +169,11 @@ class MatchController extends PagedController<ObjectMatch> {
   String itemId(ObjectMatch item) => item.id;
   @override
   Future<MatchPage> fetchPage(int limit, int offset) => _list(
-      limit: limit, offset: offset, level: levelFilter, status: statusFilter);
+      limit: limit,
+      offset: offset,
+      level: levelFilter,
+      status: statusFilter,
+      reportId: reportId);
   Future<void> setFilters({MatchLevel? level, MatchStatus? status}) async {
     levelFilter = level;
     statusFilter = status;
@@ -192,6 +230,7 @@ class MatchController extends PagedController<ObjectMatch> {
 
   @override
   void clear() {
+    section = MatchSection.candidates;
     _reviews.clear();
     reviewing.clear();
     reviewErrors.clear();

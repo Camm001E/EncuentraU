@@ -8,6 +8,8 @@ class AppUser {
     required this.studentCode,
     required this.role,
     required this.isActive,
+    this.emailVerified = false,
+    this.emailVerificationRequired = false,
   });
 
   final String id;
@@ -16,4 +18,6 @@ class AppUser {
   final String studentCode;
   final UserRole role;
   final bool isActive;
+  final bool emailVerified;
+  final bool emailVerificationRequired;
 }

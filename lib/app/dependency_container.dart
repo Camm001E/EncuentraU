@@ -234,6 +234,8 @@ class DependencyContainer {
             getMyMatches: GetMyMatches(matches),
             getMyMatch: GetMyMatch(matches)),
         authController: AuthController(
+            emailVerifier: AuthRemoteDataSource(client: sharedClient),
+            passwordRecoverer: AuthRemoteDataSource(client: sharedClient),
             registerUser: RegisterUser(authentication),
             loginUser: LoginUser(authentication),
             restoreSession: RestoreSession(authentication),

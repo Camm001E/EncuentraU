@@ -1,6 +1,22 @@
 import 'app_validation.dart';
 
 abstract final class AppStrings {
+  static const verifyEmail = 'Verificar correo';
+  static const emailVerificationRequired =
+      'Verifica tu correo antes de iniciar sesión.';
+  static const emailVerificationHelp =
+      'Confirma tu correo y contraseña para solicitar un código. Revisa tu bandeja de entrada y spam; el código vence en 10 minutos.';
+  static const emailCodeInvalid =
+      'El código no es válido o venció. Puedes solicitar uno nuevo.';
+  static const emailResendWait = 'Espera antes de solicitar otro código.';
+  static const emailCodeSent =
+      'Código enviado. Usa el más reciente y no lo compartas.';
+  static const emailCodeLabel = 'Código de 8 dígitos';
+  static const emailCodeRequest = 'Enviar código';
+  static const emailCodeConfirm = 'Confirmar correo';
+  static const emailVerified = 'Correo verificado. Ya puedes iniciar sesión.';
+  static const emailSendFailed =
+      'No pudimos completar la verificación. Tu cuenta se conserva; intenta más tarde.';
   static const aiQuotaReached =
       'Llegaste al cupo de IA disponible. Puedes seguir usando tus reportes y mensajes. Vuelve a intentar cuando se renueve el cupo.';
   static const deliveries = 'Entregas';
@@ -213,7 +229,7 @@ abstract final class AppStrings {
   static const estimatedCompatibility = 'Compatibilidad de los reportes';
   static const ownershipNotice =
       'Este porcentaje compara los datos de los reportes; no es la probabilidad de que sea el mismo objeto. La propiedad debe validarse antes de la entrega.';
-  static const identityEvidence = 'Identidad del objeto';
+  static const identityEvidence = 'Características descritas';
   static const contextEvidence = 'Contexto del hallazgo';
   static const pointsLegend = 'Puntos obtenidos / máximo evaluable';
   static const warningHelp =

@@ -1,3 +1,4 @@
+import 'visual_review.dart';
 import '../../../objects/domain/entities/report_image.dart';
 import '../../../objects/domain/entities/object_report.dart';
 
@@ -66,8 +67,10 @@ class ObjectMatch {
       required this.createdAt,
       required this.updatedAt,
       required this.myReport,
-      required this.candidateReport});
+      required this.candidateReport,
+      this.visualReview});
   final String id;
+  final VisualReview? visualReview;
   final int percentage;
   final double identityPercentage, contextPercentage, evidenceCoverage;
   final bool compatible;

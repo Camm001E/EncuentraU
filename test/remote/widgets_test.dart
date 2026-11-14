@@ -176,6 +176,7 @@ void main() {
       }
       expect(request.url.path, ApiConstants.myMatchesPath);
       expect(request.method, 'GET');
+      expect(request.url.queryParameters['report_id'], id);
       listed++;
       return jsonResponse(pageJson([fixture]));
     });
@@ -188,7 +189,7 @@ void main() {
     expect(generated, 1);
     expect(listed, 1);
     expect(find.byType(MatchesPage), findsOneWidget);
-    expect(find.text('91%'), findsOneWidget);
+    expect(find.text('91/100'), findsOneWidget);
     expect(
         find.text(
             '${AppStrings.evidenceCoverage}: ${fixture['evidence_coverage']}%'),

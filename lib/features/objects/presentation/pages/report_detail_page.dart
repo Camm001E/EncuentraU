@@ -70,7 +70,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       return;
     }
     widget.matchController.resetFilters();
-    Navigator.pushNamed(context, AppRoutes.matches);
+    Navigator.pushNamed(context, AppRoutes.matches, arguments: widget.reportId);
     message(AppStrings.generatedCount(result.items.length));
   }
 

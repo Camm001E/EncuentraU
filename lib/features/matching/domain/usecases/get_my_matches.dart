@@ -9,7 +9,12 @@ class GetMyMatches {
           {required int limit,
           required int offset,
           MatchLevel? level,
-          MatchStatus? status}) =>
+          MatchStatus? status,
+          String? reportId}) =>
       _repository.getMyMatches(
-          limit: limit, offset: offset, level: level, status: status);
+          limit: limit,
+          offset: offset,
+          level: level,
+          status: status,
+          reportId: reportId);
 }

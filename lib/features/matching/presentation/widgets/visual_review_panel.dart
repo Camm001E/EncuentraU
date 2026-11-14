@@ -58,6 +58,11 @@ class VisualReviewPanel extends StatelessWidget {
                         .titleMedium
                         ?.copyWith(color: color))),
           ]),
+          if (compact && review != null) ...[
+            const SizedBox(height: 8),
+            const Text(
+                'La similitud visual no confirma que sea el mismo ejemplar.'),
+          ],
           if (busy) ...[
             const SizedBox(height: 12),
             const LinearProgressIndicator(),

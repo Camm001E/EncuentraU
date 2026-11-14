@@ -1,4 +1,7 @@
 enum AuthFailure {
+  emailUnverified,
+  verificationCode,
+  rateLimited,
   invalidCredentials,
   sessionExpired,
   inactiveAccount,
@@ -12,6 +15,7 @@ enum AuthFailure {
 }
 
 final class AuthException implements Exception {
-  const AuthException(this.failure);
+  const AuthException(this.failure, {this.retryAfter = 0});
   final AuthFailure failure;
+  final int retryAfter;
 }

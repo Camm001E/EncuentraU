@@ -13,10 +13,15 @@ import 'match_tones.dart';
 
 class MatchCard extends StatelessWidget {
   const MatchCard(
-      {required this.match, this.detail = false, this.visualReview, super.key});
+      {required this.match,
+      this.detail = false,
+      this.visualReview,
+      this.onReturn,
+      super.key});
   final ObjectMatch match;
   final bool detail;
   final Widget? visualReview;
+  final VoidCallback? onReturn;
   @override
   Widget build(BuildContext context) {
     if (detail)
@@ -56,18 +61,22 @@ class MatchCard extends StatelessWidget {
                                           ? Icons.join_inner_rounded
                                           : Icons.link_off_rounded,
                                       tone: tone),
-                                  Text(AppStrings.percentage(match.percentage),
+                                  Text('${match.percentage}/100',
                                       style: Theme.of(context)
                                           .textTheme
                                           .headlineMedium
                                           ?.copyWith(color: tone.foreground)),
                                 ]),
                             const SizedBox(height: AppSizes.spacingMedium),
+                            Text('Tu reporte: ${match.myReport.objectType}'),
+                            const Text('Coincide con este reporte:'),
                             Text(match.candidateReport.objectType,
                                 style: Theme.of(context).textTheme.titleLarge),
                             const SizedBox(height: AppSizes.spacingTiny),
                             Text(AppStrings.estimatedCompatibility,
                                 style: Theme.of(context).textTheme.labelMedium),
+                            const Text(
+                                'Puntaje de búsqueda, no certeza visual.'),
                             const SizedBox(height: AppSizes.spacingRegular),
                             Wrap(
                                 spacing: AppSizes.spacingSmall,
@@ -100,9 +109,12 @@ class MatchCard extends StatelessWidget {
                             const SizedBox(height: AppSizes.spacingLarge),
                             SecondaryAction(
                                 label: AppStrings.openMatch,
-                                onPressed: () => Navigator.pushNamed(
-                                    context, AppRoutes.matchDetail,
-                                    arguments: match.id)),
+                                onPressed: () async {
+                                  await Navigator.pushNamed(
+                                      context, AppRoutes.matchDetail,
+                                      arguments: match.id);
+                                  onReturn?.call();
+                                }),
                           ])),
                 ])));
   }

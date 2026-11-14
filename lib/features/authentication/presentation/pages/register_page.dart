@@ -67,6 +67,13 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    if (widget.controller.registrationNeedsVerification) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRoutes.verifyEmail, (_) => false,
+          arguments: _emailController.text.trim());
+      return;
+    }
+
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(

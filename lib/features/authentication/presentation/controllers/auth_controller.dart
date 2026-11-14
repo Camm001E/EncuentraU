@@ -7,6 +7,8 @@ import '../../domain/usecases/login_user.dart';
 import '../../domain/usecases/logout_user.dart';
 import '../../domain/usecases/register_user.dart';
 import '../../domain/usecases/restore_session.dart';
+import '../../domain/repositories/email_verifier.dart';
+import '../../domain/repositories/password_recoverer.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -18,12 +20,20 @@ class AuthController extends ChangeNotifier {
     required LoginUser loginUser,
     required RestoreSession restoreSession,
     required LogoutUser logoutUser,
+    this.emailVerifier,
+    this.passwordRecoverer,
   })  : _registerUser = registerUser,
         _loginUser = loginUser,
         _restoreSession = restoreSession,
         _logoutUser = logoutUser;
 
   final RegisterUser _registerUser;
+  final EmailVerifier? emailVerifier;
+  final PasswordRecoverer? passwordRecoverer;
+  bool registrationNeedsVerification = false;
+  bool get needsEmailVerification =>
+      _lastFailure == AuthFailure.emailUnverified;
+  AuthFailure? _lastFailure;
   final LoginUser _loginUser;
   final RestoreSession _restoreSession;
   final LogoutUser _logoutUser;
@@ -49,11 +59,13 @@ class AuthController extends ChangeNotifier {
     required String password,
   }) =>
       _run(AuthOperation.register, () async {
-        await _registerUser(
+        final registered = await _registerUser(
             fullName: fullName,
             email: email,
             studentCode: studentCode,
             password: password);
+        registrationNeedsVerification =
+            registered.emailVerificationRequired && !registered.emailVerified;
         // Registration never opens a session.
         return null;
       });
@@ -100,6 +112,7 @@ class AuthController extends ChangeNotifier {
       return true;
     } on AuthException catch (error) {
       if (_disposed || generation != _generation) return false;
+      _lastFailure = error.failure;
       _errorMessage = _message(error.failure);
       _status = AuthStatus.error;
       return false;
@@ -117,6 +130,7 @@ class AuthController extends ChangeNotifier {
   }
 
   void _begin(AuthOperation operation) {
+    _lastFailure = null;
     _operation = operation;
     _status = AuthStatus.loading;
     _errorMessage = null;
@@ -124,6 +138,9 @@ class AuthController extends ChangeNotifier {
   }
 
   String _message(AuthFailure failure) => switch (failure) {
+        AuthFailure.emailUnverified => AppStrings.emailVerificationRequired,
+        AuthFailure.verificationCode => AppStrings.emailCodeInvalid,
+        AuthFailure.rateLimited => AppStrings.emailResendWait,
         AuthFailure.invalidCredentials => AppStrings.invalidCredentials,
         AuthFailure.sessionExpired => AppStrings.sessionExpired,
         AuthFailure.inactiveAccount => AppStrings.inactiveAccount,

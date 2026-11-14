@@ -8,6 +8,8 @@ class AppUserModel extends AppUser {
     required super.studentCode,
     required super.role,
     required super.isActive,
+    super.emailVerified,
+    super.emailVerificationRequired,
   });
 
   factory AppUserModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,8 @@ class AppUserModel extends AppUser {
         studentCode: studentCode,
         role: parsedRole,
         isActive: isActive,
+        emailVerified: json['email_verified'] == true,
+        emailVerificationRequired: json['email_verification_required'] == true,
       );
     }
     throw const FormatException();

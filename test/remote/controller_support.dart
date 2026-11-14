@@ -79,7 +79,8 @@ class MatchRepositoryStub implements MatchRepository {
           {required int limit,
           required int offset,
           MatchLevel? level,
-          MatchStatus? status}) async =>
+          MatchStatus? status,
+          String? reportId}) async =>
       onList != null
           ? await onList!(limit, offset)
           : MatchPage(
