@@ -160,6 +160,9 @@ abstract final class AppTheme {
           labelTextStyle: WidgetStatePropertyAll(
               text.labelMedium?.copyWith(fontWeight: FontWeight.w600))),
       navigationRailTheme: NavigationRailThemeData(
+          useIndicator: true,
+          indicatorShape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           backgroundColor: scheme.surface,
           indicatorColor: scheme.primaryContainer,
           selectedIconTheme: IconThemeData(color: scheme.primary),
