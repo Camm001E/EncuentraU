@@ -134,6 +134,7 @@ class AuthenticatedApiClient {
           }
         }
         final failure = switch (response.statusCode) {
+          429 => ApiFailure.rateLimited,
           ApiConstants.badRequest ||
           ApiConstants.unprocessable =>
             ApiFailure.invalidData,

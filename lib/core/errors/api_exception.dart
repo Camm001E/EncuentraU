@@ -1,4 +1,5 @@
 enum ApiFailure {
+  rateLimited,
   permissionDenied,
   workflowConflict,
   invalidData,

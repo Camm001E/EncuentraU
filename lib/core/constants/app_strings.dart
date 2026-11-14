@@ -1,6 +1,8 @@
 import 'app_validation.dart';
 
 abstract final class AppStrings {
+  static const aiQuotaReached =
+      'Llegaste al cupo de IA disponible. Puedes seguir usando tus reportes y mensajes. Vuelve a intentar cuando se renueve el cupo.';
   static const deliveries = 'Entregas';
   static const myDeliveries = 'Mis entregas';
   static const deliveryProcess = 'Proceso de entrega';
