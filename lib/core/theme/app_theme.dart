@@ -152,6 +152,8 @@ abstract final class AppTheme {
               minimumSize:
                   const Size(AppSizes.touchTarget, AppSizes.touchTarget))),
       navigationBarTheme: NavigationBarThemeData(
+          indicatorShape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           backgroundColor: scheme.surface,
           indicatorColor: scheme.primaryContainer,
           elevation: 0,
