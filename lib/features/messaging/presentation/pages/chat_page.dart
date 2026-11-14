@@ -89,6 +89,9 @@ class _ChatPageState extends State<ChatPage> {
                           keyboardType: TextInputType.multiline,
                           textInputAction: TextInputAction.newline,
                           decoration: const InputDecoration(
+                              alignLabelWithHint: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 14),
                               hintText: AppStrings.writeMessage,
                               labelText: AppStrings.writeMessage))),
                   const SizedBox(width: AppSizes.spacingSmall),
