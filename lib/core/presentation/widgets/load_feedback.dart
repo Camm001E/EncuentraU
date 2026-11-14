@@ -16,7 +16,7 @@ class LoadFeedback extends StatelessWidget {
               ? AppSemanticColors.of(context).information
               : AppSemanticColors.of(context).warning,
           icon: onRetry == null
-              ? Icons.explore_outlined
+              ? Icons.manage_search_rounded
               : Icons.cloud_off_outlined,
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
