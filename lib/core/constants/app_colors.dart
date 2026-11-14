@@ -6,7 +6,7 @@ abstract final class AppColors {
   static const peach = Color(0xFFF2BFA4);
   static const lavender = Color(0xFFBBB7E8);
   static const amber = Color(0xFFF4D58D);
-  static const background = Color(0xFFF7FAF8);
+  static const background = Color(0xFFFAFAF6);
   static const surface = Color(0xFFFFFFFF);
   static const greenSurface = Color(0xFFE6F2EE);
   static const peachSurface = Color(0xFFFCEDE5);
