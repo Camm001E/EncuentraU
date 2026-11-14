@@ -208,9 +208,9 @@ abstract final class AppStrings {
   static const lowShort = 'Baja';
   static const matchListSubtitle =
       'Explora la evidencia que conecta tus reportes.';
-  static const estimatedCompatibility = 'Compatibilidad estimada';
+  static const estimatedCompatibility = 'Compatibilidad de los reportes';
   static const ownershipNotice =
-      'Esta puntuación compara la evidencia disponible. La propiedad debe validarse antes de entregar el objeto.';
+      'Este porcentaje compara los datos de los reportes; no es la probabilidad de que sea el mismo objeto. La propiedad debe validarse antes de la entrega.';
   static const identityEvidence = 'Identidad del objeto';
   static const contextEvidence = 'Contexto del hallazgo';
   static const pointsLegend = 'Puntos obtenidos / máximo evaluable';

@@ -15,12 +15,14 @@ class ObjectImageAnalysisModel extends ObjectImageAnalysis {
     required super.confidence,
     required super.requiresAnotherPhoto,
     required super.warnings,
+    super.analysisReceipt,
   });
 
   factory ObjectImageAnalysisModel.fromJson(
     Map<String, dynamic> json,
   ) {
     return ObjectImageAnalysisModel(
+      analysisReceipt: _optionalString(json, 'analysis_receipt'),
       objectDetected: _requiredBool(
         json,
         'object_detected',

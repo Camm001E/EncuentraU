@@ -12,12 +12,15 @@ import 'match_detail_content.dart';
 import 'match_tones.dart';
 
 class MatchCard extends StatelessWidget {
-  const MatchCard({required this.match, this.detail = false, super.key});
+  const MatchCard(
+      {required this.match, this.detail = false, this.visualReview, super.key});
   final ObjectMatch match;
   final bool detail;
+  final Widget? visualReview;
   @override
   Widget build(BuildContext context) {
-    if (detail) return MatchDetailContent(match: match);
+    if (detail)
+      return MatchDetailContent(match: match, visualReview: visualReview);
     final tone = matchTone(context, match.level);
     return Padding(
         padding: const EdgeInsets.only(bottom: AppSizes.spacingLarge),
@@ -31,6 +34,11 @@ class MatchCard extends StatelessWidget {
                       image: match.candidateReport.image,
                       height: AppSizes.matchPhotoHeight,
                       label: AppStrings.candidatePhotoLabel)),
+              if (visualReview != null)
+                Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSizes.spacingMedium),
+                    child: visualReview),
               Padding(
                   padding: const EdgeInsets.all(AppSizes.spacingMedium),
                   child: Column(

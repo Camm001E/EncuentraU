@@ -1,3 +1,4 @@
+import '../features/messaging/data/datasources/chat_events.dart';
 import '../features/objects/domain/repositories/object_analysis_repository.dart';
 import '../features/deliveries/data/datasources/delivery_remote_data_source.dart';
 import '../features/deliveries/data/repositories/delivery_repository_impl.dart';
@@ -149,7 +150,8 @@ class DependencyContainer {
     final objects = ObjectRepositoryImpl(ObjectReportRemoteDataSource(api));
     final imageRepository =
         ReportImageRepositoryImpl(ReportImageRemoteDataSource(api));
-    final matches = MatchRepositoryImpl(MatchRemoteDataSource(api));
+    final matchSource = MatchRemoteDataSource(api);
+    final matches = MatchRepositoryImpl(matchSource);
     final claims = ClaimRepositoryImpl(ClaimRemoteDataSource(api));
     final studentClaims = claimRepository ?? claims;
     final adminClaims = adminClaimRepository ?? claims;
@@ -204,6 +206,9 @@ class DependencyContainer {
         adminSummaryController: adminSummary,
         conversationsController: inbox,
         chatFactory: () => ChatController(
+            events: conversationRepository == null
+                ? (id) => chatEvents(id, session)
+                : null,
             get: GetConversation(conversations),
             list: ListMessages(conversations),
             send: SendMessage(conversations),
@@ -223,6 +228,7 @@ class DependencyContainer {
             updateReport: UpdateObjectReport(objects),
             cancelReport: CancelObjectReport(objects)),
         matchController: MatchController(
+            reviewPhotos: matchSource.review,
             onMatchesChanged: dashboard.refresh,
             generateReportMatches: GenerateReportMatches(matches),
             getMyMatches: GetMyMatches(matches),
@@ -235,7 +241,7 @@ class DependencyContainer {
         objectAnalysisController: ObjectAnalysisController(AnalyzeObjectImage(
             analysisRepository ??
                 ObjectAnalysisRepositoryImpl(
-                    ObjectAnalysisRemoteDataSource(client: sharedClient)))));
+                    ObjectAnalysisRemoteDataSource(api: api)))));
     return result;
   }
 

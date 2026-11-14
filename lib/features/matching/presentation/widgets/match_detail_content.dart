@@ -13,8 +13,9 @@ import 'match_evidence.dart';
 import 'match_tones.dart';
 
 class MatchDetailContent extends StatefulWidget {
-  const MatchDetailContent({required this.match, super.key});
+  const MatchDetailContent({required this.match, this.visualReview, super.key});
   final ObjectMatch match;
+  final Widget? visualReview;
   @override
   State<MatchDetailContent> createState() => _MatchDetailContentState();
 }
@@ -31,6 +32,7 @@ class _MatchDetailContentState extends State<MatchDetailContent> {
           eyebrow: AppStrings.comparisonEyebrow),
       MatchComparisonScene(key: ValueKey('photos-${match.id}'), match: match),
       const SizedBox(height: AppSizes.spacingXLarge),
+      if (widget.visualReview != null) widget.visualReview!,
       LayoutBuilder(builder: (context, constraints) {
         final score = Column(mainAxisSize: MainAxisSize.min, children: [
           ScoreRing(

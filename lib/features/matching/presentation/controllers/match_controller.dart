@@ -1,6 +1,7 @@
 import '../../../../core/presentation/api_message.dart';
 import '../../../../core/presentation/paged_controller.dart';
 import '../../domain/entities/object_match.dart';
+import '../../domain/entities/visual_review.dart';
 import '../../domain/entities/match_page.dart';
 import '../../domain/usecases/generate_report_matches.dart';
 import '../../domain/usecases/get_my_matches.dart';
@@ -11,6 +12,7 @@ class MatchController extends PagedController<ObjectMatch> {
       {required GenerateReportMatches generateReportMatches,
       required GetMyMatches getMyMatches,
       required GetMyMatch getMyMatch,
+      this.reviewPhotos,
       this.onMatchesChanged})
       : _generate = generateReportMatches,
         _list = getMyMatches,
@@ -19,6 +21,108 @@ class MatchController extends PagedController<ObjectMatch> {
   final GetMyMatches _list;
   final GetMyMatch _get;
   final void Function()? onMatchesChanged;
+  final Future<VisualReview> Function(String)? reviewPhotos;
+  final Map<String, VisualReview> _reviews = {};
+  final Set<String> reviewing = {};
+  final Map<String, String> reviewErrors = {};
+  bool isReviewingBatch = false;
+  int batchCompleted = 0, batchTotal = 0;
+  bool get canReview => reviewPhotos != null;
+  int get reviewableCount => items
+      .where((m) =>
+          m.myReport.image != null &&
+          m.candidateReport.image != null &&
+          visualReviewFor(m) == null)
+      .length;
+
+  VisualReview? visualReviewFor(ObjectMatch match) {
+    final result = _reviews[match.id];
+    return result != null && result.appliesTo(match) ? result : null;
+  }
+
+  List<ObjectMatch> get rankedItems {
+    final ordered = items.toList();
+    int rank(ObjectMatch m) => switch (visualReviewFor(m)?.verdict) {
+          VisualVerdict.consistent => 0,
+          VisualVerdict.different => 2,
+          _ => 1,
+        };
+    final positions = {
+      for (var i = 0; i < ordered.length; i++) ordered[i].id: i
+    };
+    ordered.sort((a, b) {
+      final difference = rank(a).compareTo(rank(b));
+      return difference != 0
+          ? difference
+          : positions[a.id]!.compareTo(positions[b.id]!);
+    });
+    return ordered;
+  }
+
+  Future<void> review(ObjectMatch match) async {
+    if (!canReview ||
+        reviewing.contains(match.id) ||
+        match.myReport.image == null ||
+        match.candidateReport.image == null) return;
+    final epoch = generation;
+    reviewing.add(match.id);
+    reviewErrors.remove(match.id);
+    notify();
+    try {
+      final result = await reviewPhotos!(match.id);
+      if (!isCurrent(epoch)) return;
+      if (!result.appliesTo(match)) {
+        _reviews.remove(match.id);
+        reviewErrors[match.id] =
+            'Las fotos cambiaron. Actualiza esta coincidencia.';
+        return;
+      }
+      if (_reviews.length >= 128) _reviews.remove(_reviews.keys.first);
+      _reviews[match.id] = result;
+    } catch (error) {
+      if (isCurrent(epoch)) {
+        _reviews.remove(match.id);
+        reviewErrors[match.id] = apiMessage(error);
+      }
+    } finally {
+      if (isCurrent(epoch)) {
+        reviewing.remove(match.id);
+        notify();
+      }
+    }
+  }
+
+  Future<void> reviewVisible() async {
+    if (isReviewingBatch || !canReview) return;
+    final epoch = generation;
+    final candidates = items
+        .where((m) =>
+            m.myReport.image != null &&
+            m.candidateReport.image != null &&
+            visualReviewFor(m) == null)
+        .take(5)
+        .toList();
+    isReviewingBatch = true;
+    batchCompleted = 0;
+    batchTotal = candidates.length;
+    notify();
+    try {
+      for (final match in candidates) {
+        if (!isCurrent(epoch)) break;
+        await review(match);
+        if (isCurrent(epoch)) {
+          batchCompleted++;
+          notify();
+        }
+      }
+    } finally {
+      if (isCurrent(epoch)) {
+        isReviewingBatch = false;
+        notify();
+      }
+    }
+  }
+
   MatchLevel? levelFilter;
   MatchStatus? statusFilter;
   ObjectMatch? detail;
@@ -75,6 +179,8 @@ class MatchController extends PagedController<ObjectMatch> {
       if (!isCurrent(epoch) || request != _detailRequest) return;
       detail = result;
       detailStatus = LoadStatus.ready;
+      notify();
+      if (visualReviewFor(result) == null) await review(result);
     } catch (error) {
       if (!isCurrent(epoch) || request != _detailRequest) return;
       detailStatus = LoadStatus.error;
@@ -86,6 +192,11 @@ class MatchController extends PagedController<ObjectMatch> {
 
   @override
   void clear() {
+    _reviews.clear();
+    reviewing.clear();
+    reviewErrors.clear();
+    isReviewingBatch = false;
+    batchCompleted = batchTotal = 0;
     _detailRequest++;
     detail = null;
     detailStatus = LoadStatus.initial;

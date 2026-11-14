@@ -7,6 +7,7 @@ import '../../../../core/presentation/paged_controller.dart';
 import '../../../../core/presentation/widgets/load_feedback.dart';
 import '../controllers/match_controller.dart';
 import '../widgets/match_card.dart';
+import '../widgets/visual_review_panel.dart';
 import '../../../../core/presentation/widgets/design_system.dart';
 
 class MatchDetailPage extends StatefulWidget {
@@ -59,12 +60,14 @@ class _MatchDetailPageState extends State<MatchDetailPage> {
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(AppSizes.spacingMLarge),
                         children: [
-                          if (widget.claimsController case final claims?)
-                            MatchClaimPanel(match: match, controller: claims),
                           MatchCard(
                               key: ValueKey(match.id),
                               match: match,
-                              detail: true)
+                              detail: true,
+                              visualReview: VisualReviewPanel(
+                                  match: match, controller: controller)),
+                          if (widget.claimsController case final claims?)
+                            MatchClaimPanel(match: match, controller: claims),
                         ])));
           }));
 }

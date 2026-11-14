@@ -7,6 +7,7 @@ import '../../domain/entities/object_match.dart';
 import '../constants/match_labels.dart';
 import '../controllers/match_controller.dart';
 import '../widgets/match_card.dart';
+import '../widgets/visual_review_panel.dart';
 import '../../../../core/presentation/widgets/design_system.dart';
 
 class MatchesPage extends StatefulWidget {
@@ -103,6 +104,23 @@ class _MatchesPageState extends State<MatchesPage> {
                           }),
                           const SizedBox(height: AppSizes.spacingLarge),
                           Text(AppStrings.resultCount(controller.total)),
+                          if (controller.canReview &&
+                              controller.items.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                                onPressed: controller.isReviewingBatch ||
+                                        controller.reviewableCount == 0
+                                    ? null
+                                    : controller.reviewVisible,
+                                icon: const Icon(Icons.compare_outlined),
+                                label: Text(controller.isReviewingBatch
+                                    ? 'Revisando ${controller.batchCompleted}/${controller.batchTotal}'
+                                    : 'Comparar hasta 5 coincidencias')),
+                            const Text(
+                                'Las diferencias visibles quedan al final de esta lista. '
+                                'Abre una coincidencia para revisar los detalles.'),
+                            const SizedBox(height: 12),
+                          ],
                           if (controller.status == LoadStatus.loading)
                             const LoadingSkeleton(),
                           if (controller.status == LoadStatus.error)
@@ -115,8 +133,12 @@ class _MatchesPageState extends State<MatchesPage> {
                           if (controller.status == LoadStatus.empty)
                             const Text(AppStrings.matchesHelp),
                           if (controller.status != LoadStatus.loading)
-                            ...controller.items
-                                .map((match) => MatchCard(match: match)),
+                            ...controller.rankedItems.map((match) => MatchCard(
+                                match: match,
+                                visualReview: VisualReviewPanel(
+                                    match: match,
+                                    controller: controller,
+                                    compact: true))),
                           if (controller.hasMore)
                             OutlinedButton(
                                 onPressed: controller.isLoadingMore

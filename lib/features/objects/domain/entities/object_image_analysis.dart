@@ -13,8 +13,10 @@ class ObjectImageAnalysis {
     required this.confidence,
     required this.requiresAnotherPhoto,
     required this.warnings,
+    this.analysisReceipt,
   });
 
+  final String? analysisReceipt;
   final bool objectDetected;
   final String? objectType;
   final String category;

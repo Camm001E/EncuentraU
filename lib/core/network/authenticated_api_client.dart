@@ -29,14 +29,21 @@ class AuthenticatedApiClient {
     Map<String, dynamic>? body,
     Map<String, String>? query,
     int expectedStatus = ApiConstants.ok,
+    Duration? requestTimeout,
   }) async {
     final req = http.Request(method, ApiConstants.uri(path, query))
       ..headers.addAll(ApiConstants.jsonHeaders);
     if (body != null) req.body = jsonEncode(body);
-    final response = await _send(req, expectedStatus: expectedStatus);
+    final response = await _send(req,
+        expectedStatus: expectedStatus, requestTimeout: requestTimeout);
     if (expectedStatus == ApiConstants.noContent) return null;
     return _json(response);
   }
+
+  Future<http.Response> sendMultipart(http.MultipartRequest request,
+          {required Duration requestTimeout}) =>
+      _send(request,
+          expectedStatus: ApiConstants.ok, requestTimeout: requestTimeout);
 
   Map<String, dynamic> _json(http.Response response) {
     try {

@@ -11,6 +11,8 @@ abstract final class ReportCreateModel {
   static String? _optional(String? value) =>
       value == null || value.trim().isEmpty ? null : value.trim();
   static Map<String, dynamic> analysisJson(ObjectImageAnalysis value) => {
+        if (value.analysisReceipt != null)
+          'analysis_receipt': value.analysisReceipt,
         'object_detected': value.objectDetected,
         'object_type': value.objectType,
         'category': value.category,

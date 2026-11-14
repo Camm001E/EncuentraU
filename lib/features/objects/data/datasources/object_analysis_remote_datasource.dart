@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/network/authenticated_api_client.dart';
+import '../../../../core/errors/api_exception.dart';
 import '../../../../core/constants/app_durations.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../domain/entities/object_image_input.dart';
@@ -13,10 +15,10 @@ import '../models/object_image_analysis_model.dart';
 
 class ObjectAnalysisRemoteDataSource {
   ObjectAnalysisRemoteDataSource({
-    http.Client? client,
-  }) : _client = client ?? http.Client();
+    required AuthenticatedApiClient api,
+  }) : _api = api;
 
-  final http.Client _client;
+  final AuthenticatedApiClient _api;
 
   Future<ObjectImageAnalysisModel> analyzeImage(
     ObjectImageInput input,
@@ -36,11 +38,8 @@ class ObjectAnalysisRemoteDataSource {
       );
 
     try {
-      final response = await (() async {
-        final streamed = await _client.send(request);
-        return http.Response.fromStream(streamed);
-      })()
-          .timeout(AppDurations.aiAnalysisTimeout);
+      final response = await _api.sendMultipart(request,
+          requestTimeout: AppDurations.aiAnalysisTimeout);
 
       final body = _decodeBody(response.bodyBytes);
 
@@ -63,6 +62,17 @@ class ObjectAnalysisRemoteDataSource {
           AppStrings.invalidAnalysisResponse,
         );
       }
+    } on ApiException catch (error) {
+      throw ObjectAnalysisException(switch (error.failure) {
+        ApiFailure.unauthorized ||
+        ApiFailure.forbidden =>
+          AppStrings.sessionExpired,
+        ApiFailure.imageTooLarge => AppStrings.imageTooLarge,
+        ApiFailure.unsupportedImage => AppStrings.unsupportedImage,
+        ApiFailure.timeout => AppStrings.analysisTimeout,
+        ApiFailure.connection => AppStrings.networkError,
+        _ => AppStrings.analysisUnavailable,
+      });
     } on TimeoutException {
       throw const ObjectAnalysisException(
         AppStrings.analysisTimeout,

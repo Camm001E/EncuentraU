@@ -17,6 +17,7 @@ class ChatController extends ChangeNotifier {
       required MarkConversationRead read,
       this.pollInterval = AppDurations.chatPolling,
       this.messageId = newClientMessageId,
+      this.events,
       this.onActivity,
       this.onRefreshed})
       : _get = get,
@@ -31,6 +32,8 @@ class ChatController extends ChangeNotifier {
   final String Function() messageId;
   final void Function()? onActivity;
   final Future<void> Function(String)? onRefreshed;
+  final Stream<void> Function(String)? events;
+  StreamSubscription<void>? _events;
   Timer? _timer;
   bool _visible = false, _disposed = false, _fetching = false;
   int _epoch = 0;
@@ -57,11 +60,17 @@ class ChatController extends ChangeNotifier {
   }
 
   void setVisible(bool value) {
+    _events?.cancel();
+    _events = null;
     _visible = value;
     _timer?.cancel();
     _timer = null;
     if (value && conversationId != null && !_disposed) {
-      _timer = Timer.periodic(pollInterval, (_) {
+      _events = events?.call(conversationId!).listen((_) {
+        if (!_fetching) unawaited(refresh());
+      }, onError: (Object _) {});
+      _timer = Timer.periodic(
+          events == null ? pollInterval : const Duration(seconds: 30), (_) {
         if (!_fetching) unawaited(refresh());
       });
       unawaited(refresh());
@@ -208,6 +217,8 @@ class ChatController extends ChangeNotifier {
 
   void clear() {
     _epoch++;
+    _events?.cancel();
+    _events = null;
     _timer?.cancel();
     _timer = null;
     _visible = false;
