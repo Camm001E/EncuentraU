@@ -76,7 +76,7 @@ class BrandWordmark extends StatelessWidget {
               child: Text(AppStrings.appName,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: AppSizes.titleLetterSpacing))),
         ]);
       });
