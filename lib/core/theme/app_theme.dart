@@ -186,7 +186,10 @@ abstract final class AppTheme {
       dividerTheme:
           DividerThemeData(color: scheme.outlineVariant, thickness: 1),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-          color: scheme.primary, linearTrackColor: scheme.outlineVariant),
+          borderRadius: BorderRadius.circular(8),
+          linearMinHeight: 6,
+          color: scheme.primary,
+          linearTrackColor: scheme.outlineVariant),
     );
   }
 }
