@@ -34,21 +34,20 @@ class _BrandPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = size.width * .075;
-    final rect = Rect.fromLTWH(size.width * .22, size.height * .18,
-        size.width * .56, size.height * .58);
-    canvas.drawArc(rect, -.25 * math.pi, 1.48 * math.pi, false, paint);
-    final path = Path()
-      ..moveTo(size.width * .47, size.height * .37)
-      ..lineTo(size.width * .47, size.height * .53)
-      ..quadraticBezierTo(size.width * .47, size.height * .67, size.width * .61,
-          size.height * .67)
-      ..quadraticBezierTo(size.width * .73, size.height * .67, size.width * .73,
-          size.height * .53)
-      ..lineTo(size.width * .73, size.height * .43);
-    canvas.drawPath(path, paint);
-    canvas.drawCircle(Offset(size.width * .74, size.height * .23),
-        size.width * .045, Paint()..color = color);
+      ..strokeJoin = StrokeJoin.round
+      ..strokeWidth = size.width * .07;
+    final circle = Rect.fromLTWH(size.width * .21, size.height * .17,
+        size.width * .51, size.height * .51);
+    canvas.drawArc(circle, -.22 * math.pi, 1.76 * math.pi, false, paint);
+    canvas.drawLine(Offset(size.width * .65, size.height * .63),
+        Offset(size.width * .80, size.height * .80), paint);
+    final u = Path()
+      ..moveTo(size.width * .36, size.height * .32)
+      ..lineTo(size.width * .36, size.height * .46)
+      ..quadraticBezierTo(size.width * .46, size.height * .62, size.width * .56,
+          size.height * .46)
+      ..lineTo(size.width * .56, size.height * .32);
+    canvas.drawPath(u, paint..strokeWidth = size.width * .045);
   }
 
   @override
