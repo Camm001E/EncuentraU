@@ -14,6 +14,7 @@ class ObjectReportCard extends StatelessWidget {
   final bool compact;
   @override
   Widget build(BuildContext context) => Card(
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
           borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
           onTap: () => Navigator.pushNamed(context, AppRoutes.reportDetail,
