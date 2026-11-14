@@ -50,7 +50,7 @@ abstract final class AppSizes {
 
   // Bordes
   static const double radiusLarge = 20;
-  static const double radiusXLarge = 18;
+  static const double radiusXLarge = 28;
 
   // Componentes
   static const double buttonHorizontalPadding = 20;
