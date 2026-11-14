@@ -49,7 +49,7 @@ abstract final class AppSizes {
   static const double spacingXLarge = 32;
 
   // Bordes
-  static const double radiusLarge = 14;
+  static const double radiusLarge = 20;
   static const double radiusXLarge = 18;
 
   // Componentes
