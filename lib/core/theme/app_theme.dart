@@ -109,6 +109,8 @@ abstract final class AppTheme {
           shape:
               shape.copyWith(side: BorderSide(color: scheme.outlineVariant))),
       inputDecorationTheme: InputDecorationTheme(
+          floatingLabelStyle:
+              TextStyle(color: scheme.primary, fontWeight: FontWeight.w600),
           filled: true,
           fillColor: scheme.surface,
           contentPadding: const EdgeInsets.all(AppSizes.spacingMedium),
