@@ -49,6 +49,10 @@ abstract final class AppTheme {
     final shape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.radiusLarge));
     return base.copyWith(
+      textSelectionTheme: TextSelectionThemeData(
+          cursorColor: scheme.primary,
+          selectionColor: scheme.primary.withValues(alpha: .18),
+          selectionHandleColor: scheme.primary),
       textTheme: text.copyWith(
         headlineLarge: text.headlineLarge?.copyWith(
             fontWeight: FontWeight.w800,
