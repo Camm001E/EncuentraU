@@ -41,8 +41,13 @@ class MessageBubble extends StatelessWidget {
                                 color: message.isMine
                                     ? scheme.primaryContainer
                                     : scheme.tertiaryContainer,
-                                borderRadius: BorderRadius.circular(
-                                    AppSizes.radiusLarge)),
+                                borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circular(20),
+                                    topRight: const Radius.circular(20),
+                                    bottomLeft: Radius.circular(
+                                        message.isMine ? 20 : 6),
+                                    bottomRight: Radius.circular(
+                                        message.isMine ? 6 : 20))),
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
