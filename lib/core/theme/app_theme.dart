@@ -49,6 +49,12 @@ abstract final class AppTheme {
     final shape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.radiusLarge));
     return base.copyWith(
+      popupMenuTheme: PopupMenuThemeData(
+          color: scheme.surface,
+          surfaceTintColor: scheme.surface,
+          elevation: 8,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
       dialogTheme: DialogThemeData(
           backgroundColor: scheme.surface,
           surfaceTintColor: scheme.surface,
