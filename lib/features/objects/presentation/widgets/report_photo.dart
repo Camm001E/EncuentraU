@@ -116,7 +116,11 @@ class _ReportPhotoState extends State<ReportPhoto> {
                           errorBuilder: (_, __, ___) =>
                               _placeholder(error: true))
                       : _loading
-                          ? const Center(child: CircularProgressIndicator())
+                          ? const Center(
+                              child: SizedBox.square(
+                                  dimension: 24,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2)))
                           : _placeholder(error: _error)))));
   Widget _placeholder({required bool error}) => Center(
       child: widget.thumbnail
