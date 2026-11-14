@@ -12,7 +12,7 @@ abstract final class AppColors {
   static const peachSurface = Color(0xFFFCEDE5);
   static const lavenderSurface = Color(0xFFEFEDFA);
   static const textPrimary = Color(0xFF20332D);
-  static const textSecondary = Color(0xFF60756E);
+  static const textSecondary = Color(0xFF526B64);
   static const disabled = Color(0xFF91A29C);
   static const border = Color(0xFFDCE8E3);
   static const lost = Color(0xFFD97868);
