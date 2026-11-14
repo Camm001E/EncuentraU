@@ -315,3 +315,7 @@ mantienen en memoria y se retiran del caché privado del dispositivo después de
 consumirlas. Los casos se conservan en PostgreSQL; capturas y resultados quedan
 únicamente en `build/delivery-e2e/`, fuera de Git. No se incluyen datos E2E ni
 secretos en los archivos del proyecto.
+
+## Arquitectura del chat
+
+La presentacion usa ChatController; los casos de uso consultan repositorios y datasources HTTP autenticados. El canal WebSocket recibe avisos de Redis a traves del backend y solicita el historial por HTTP. Se reconecta tras fallos y sincroniza al conectarse. PostgreSQL conserva los mensajes. La sesion controla el token y descarta resultados de cuentas anteriores. El token viaja en el primer frame, nunca en la URL; en produccion se utiliza WSS.
