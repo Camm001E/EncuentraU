@@ -61,7 +61,7 @@ void main() {
     expect(controller.analysis!.brand, isNull);
     expect(controller.status, ObjectAnalysisStatus.success);
   });
-  for (final status in [401, 413, 415, 500]) {
+  for (final status in [401, 413, 415, 429, 500]) {
     test('análisis HTTP $status no expone el cuerpo técnico', () async {
       final client = MockClient((_) async => jsonResponse(
           {'detail': '<html>private-internal-details</html>'}, status));
@@ -76,13 +76,13 @@ void main() {
             401: AppStrings.sessionExpired,
             413: AppStrings.imageTooLarge,
             415: AppStrings.unsupportedImage,
+            429: AppStrings.aiQuotaReached,
             500: AppStrings.analysisUnavailable
           }[status]);
       expect(controller.message, isNot(contains('private-internal-details')));
     });
   }
-  test('reset descarta un análisis tardío de la sesión anterior',
-      () async {
+  test('reset descarta un análisis tardío de la sesión anterior', () async {
     final pending = Completer<http.Response>();
     final client = MockClient((_) => pending.future);
     addTearDown(client.close);
