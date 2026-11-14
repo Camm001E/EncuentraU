@@ -9,6 +9,11 @@ abstract final class AppGradients {
         AppColors.greenSurface,
         AppColors.background,
         AppColors.peachSurface
+      ],
+      stops: [
+        0,
+        .62,
+        1
       ]);
   static const brand = LinearGradient(
       begin: Alignment.topLeft,
