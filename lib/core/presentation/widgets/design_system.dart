@@ -21,8 +21,8 @@ class BrandMark extends StatelessWidget {
           child: SizedBox.square(
               dimension: size,
               child: CustomPaint(
-                  painter:
-                      _BrandPainter(Theme.of(context).colorScheme.primary)))));
+                  painter: _BrandPainter(
+                      Theme.of(context).colorScheme.onPrimary)))));
 }
 
 class _BrandPainter extends CustomPainter {

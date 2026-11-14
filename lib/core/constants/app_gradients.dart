@@ -18,7 +18,7 @@ abstract final class AppGradients {
   static const brand = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [AppColors.sage, AppColors.greenSurface]);
+      colors: [AppColors.primary, Color(0xFF258F7E)]);
   static const comparison = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
