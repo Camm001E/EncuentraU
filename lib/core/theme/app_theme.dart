@@ -49,6 +49,14 @@ abstract final class AppTheme {
     final shape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.radiusLarge));
     return base.copyWith(
+      tooltipTheme: TooltipThemeData(
+          waitDuration: const Duration(milliseconds: 400),
+          showDuration: const Duration(seconds: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+              color: scheme.inverseSurface,
+              borderRadius: BorderRadius.circular(10)),
+          textStyle: TextStyle(color: scheme.onInverseSurface, fontSize: 13)),
       textSelectionTheme: TextSelectionThemeData(
           cursorColor: scheme.primary,
           selectionColor: scheme.primary.withValues(alpha: .18),
