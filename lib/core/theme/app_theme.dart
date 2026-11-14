@@ -126,6 +126,8 @@ abstract final class AppTheme {
                   color: scheme.primary, width: AppSizes.strokeWidth))),
       filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
+              textStyle: text.labelLarge
+                  ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: .1),
               minimumSize:
                   const Size(AppSizes.touchTarget, AppSizes.touchTarget),
               padding: const EdgeInsets.symmetric(
