@@ -130,8 +130,7 @@ class StatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
       decoration: BoxDecoration(
-          color: tone.background,
-          borderRadius: BorderRadius.circular(AppSizes.radiusSmall)),
+          color: tone.background, borderRadius: BorderRadius.circular(999)),
       child: Padding(
           padding: const EdgeInsets.symmetric(
               horizontal: AppSizes.spacingRegular,
