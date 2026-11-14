@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 abstract final class AppColors {
   static const sage = Color(0xFF78B6A3);
-  static const primary = Color(0xFF2F6F5D);
+  static const primary = Color(0xFF176B61);
   static const peach = Color(0xFFF2BFA4);
   static const lavender = Color(0xFFBBB7E8);
   static const amber = Color(0xFFF4D58D);
