@@ -68,7 +68,13 @@ class ProfilePage extends StatelessWidget {
                       ])
                         ListTile(
                             contentPadding: EdgeInsets.zero,
-                            leading: Icon(item.$3),
+                            leading: CircleAvatar(
+                                backgroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                                foregroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                child: Icon(item.$3, size: 20)),
                             title: Text(item.$1),
                             subtitle: SelectableText(item.$2)),
                       const SizedBox(height: AppSizes.spacingXLarge),
