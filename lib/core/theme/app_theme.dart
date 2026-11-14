@@ -49,6 +49,11 @@ abstract final class AppTheme {
     final shape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.radiusLarge));
     return base.copyWith(
+      scrollbarTheme: ScrollbarThemeData(
+          thickness: const WidgetStatePropertyAll(6),
+          radius: const Radius.circular(8),
+          thumbColor:
+              WidgetStatePropertyAll(scheme.primary.withValues(alpha: .42))),
       popupMenuTheme: PopupMenuThemeData(
           color: scheme.surface,
           surfaceTintColor: scheme.surface,
