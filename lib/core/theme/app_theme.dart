@@ -49,6 +49,14 @@ abstract final class AppTheme {
     final shape = RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSizes.radiusLarge));
     return base.copyWith(
+      dialogTheme: DialogThemeData(
+          backgroundColor: scheme.surface,
+          surfaceTintColor: scheme.surface,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          titleTextStyle:
+              text.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          contentTextStyle: text.bodyMedium?.copyWith(height: 1.5)),
       tooltipTheme: TooltipThemeData(
           waitDuration: const Duration(milliseconds: 400),
           showDuration: const Duration(seconds: 4),
