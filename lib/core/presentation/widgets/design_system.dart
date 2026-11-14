@@ -159,6 +159,7 @@ class InformationPanel extends StatelessWidget {
     return DecoratedBox(
         decoration: BoxDecoration(
             color: colors.background,
+            border: Border.all(color: colors.foreground.withValues(alpha: .14)),
             borderRadius: BorderRadius.circular(AppSizes.radiusLarge)),
         child: Padding(
             padding: const EdgeInsets.all(AppSizes.spacingMedium),
