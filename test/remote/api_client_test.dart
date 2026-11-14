@@ -19,6 +19,7 @@ void main() {
     404: ApiFailure.notFound,
     409: ApiFailure.conflict,
     422: ApiFailure.invalidData,
+    429: ApiFailure.rateLimited,
     500: ApiFailure.server,
     503: ApiFailure.server,
     599: ApiFailure.server
