@@ -1,3 +1,4 @@
+import 'welcome_artwork.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_gradients.dart';
 import '../../../../core/constants/app_shadows.dart';
@@ -62,6 +63,10 @@ class AuthLayout extends StatelessWidget {
                                                 const SizedBox(
                                                     height:
                                                         AppSizes.spacingXLarge),
+                                                const WelcomeArtwork(),
+                                                const SizedBox(
+                                                    height:
+                                                        AppSizes.spacingLarge),
                                                 const Row(children: [
                                                   Icon(Icons
                                                       .verified_user_outlined),
