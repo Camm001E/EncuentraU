@@ -25,7 +25,13 @@ class ReportActionCard extends StatelessWidget {
               padding: const EdgeInsets.all(AppSizes.spacingLarge),
               child:
                   Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Icon(icon, color: tone.foreground, size: AppSizes.cardIconSize),
+                Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: tone.foreground.withValues(alpha: .08),
+                        borderRadius: BorderRadius.circular(16)),
+                    child: Icon(icon,
+                        color: tone.foreground, size: AppSizes.cardIconSize)),
                 const SizedBox(width: AppSizes.spacingMedium),
                 Expanded(
                     child: Column(
