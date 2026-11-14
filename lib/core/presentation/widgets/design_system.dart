@@ -109,7 +109,10 @@ class SectionHeading extends StatelessWidget {
               child: Semantics(
                   header: true,
                   child: Text(title,
-                      style: Theme.of(context).textTheme.titleLarge))),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(letterSpacing: -.4)))),
           if (trailing != null) trailing!,
         ]),
         if (subtitle != null)
