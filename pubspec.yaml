@@ -1,0 +1,26 @@
+name: encuentra_u
+description: Cliente Flutter de EncuentraU con autenticación, reportes y coincidencias remotas.
+publish_to: "none"
+version: 0.2.0+2
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  cupertino_icons: ^2.0.0
+  flutter:
+    sdk: flutter
+  flutter_secure_storage: 10.1.0
+  http: ^1.6.0
+  web_socket_channel: ^3.0.3
+  http_parser: ^4.1.2
+  image_picker: ^1.2.3
+
+dev_dependencies:
+  integration_test:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

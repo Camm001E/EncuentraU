@@ -1,0 +1,11 @@
+{
+  "name": "EncuentraU",
+  "short_name": "EncuentraU",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FAFAF6",
+  "theme_color": "#176B61",
+  "description": "Sistema universitario de objetos perdidos.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
